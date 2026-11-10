@@ -16,11 +16,9 @@ $keys_data = json_decode(file_get_contents($json_file), true);
 if (!is_array($keys_data)) $keys_data = [];
 $config = json_decode(file_get_contents($config_file), true);
 
-// Global Stop kontrolü
 $global_stop = isset($config['global_stop']) ? $config['global_stop'] : false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // GLOBAL STOP TOGGLE
     if (isset($_POST['toggle_global_stop'])) {
         $global_stop = !$global_stop;
         file_put_contents($config_file, json_encode(["global_stop" => $global_stop]));
@@ -91,11 +89,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         header("Location: admin.php"); exit;
     }
+    
+    if (isset($_POST['delete_all'])) {
+        $keys_data = [];
+        file_put_contents($json_file, json_encode($keys_data, JSON_PRETTY_PRINT));
+        file_put_contents($backup_file, json_encode($keys_data, JSON_PRETTY_PRINT));
+        header("Location: admin.php"); exit;
+    }
 }
 
 if (isset($_GET['action']) && $_GET['action'] == 'logout') {
     unset($_SESSION['logged_in']); header("Location: admin.php"); exit;
 }
+
+// --- LOGIN EKRANI KONTROLÜ ---
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Login — DARK IOS</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+            body { background-color: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; color: #0f172a; }
+            .login-card { background: #ffffff; padding: 40px; border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+            .login-card h2 { text-align: center; font-size: 24px; font-weight: 700; margin-bottom: 30px; color: #0f172a; }
+            .input-group { margin-bottom: 20px; }
+            .input-group label { display: block; font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 8px; }
+            .input-group input { width: 100%; padding: 12px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; color: #0f172a; transition: 0.2s; outline: none; }
+            .input-group input:focus { border-color: #6366f1; background: #fff; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+            .btn-submit { width: 100%; padding: 12px; background: #6366f1; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+            .btn-submit:hover { background: #4f46e5; }
+            .error { color: #dc2626; font-size: 13px; text-align: center; margin-bottom: 20px; background: #fef2f2; padding: 12px; border-radius: 8px; border: 1px solid #fecaca; }
+        </style>
+    </head>
+    <body>
+        <div class="login-card">
+            <h2>DARK IOS Admin</h2>
+            <?php if(isset($login_error)) echo "<div class='error'>$login_error</div>"; ?>
+            <form method="POST">
+                <div class="input-group">
+                    <label>Username</label>
+                    <input type="text" name="username" placeholder="Enter username" required autofocus>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" name="password" placeholder="Enter password" required>
+                </div>
+                <button type="submit" name="login" class="btn-submit">Sign In</button>
+            </form>
+        </div>
+    </body>
+    </html>
+    <?php
+    exit;
+}
+// --- LOGIN EKRANI BİTİŞİ ---
 
 function key_status_badge($v) {
     if ($v['status'] == 'banned') return '<span class="badge badge-red">Manually Banned</span>';
@@ -128,7 +180,7 @@ function key_time_left($v) {
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
-        /* SOL MENÜ (Sidebar) */
+        /* SOL MENÜ */
         .sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .logo-area { padding: 24px; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; border-bottom: 1px solid var(--border); }
         .logo-icon { background: var(--primary); color: #fff; width: 32px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center; }
@@ -261,7 +313,6 @@ function key_time_left($v) {
 
         <!-- SEKME 1: TÜM KEYLER (ALL KEYS) -->
         <div id="keysTab" class="content-area active">
-            <!-- YENİ KEY OLUŞTUR -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">Create New API Key</div>
@@ -294,7 +345,6 @@ function key_time_left($v) {
                 </form>
             </div>
 
-            <!-- TABLO -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">Active Keys</div>
@@ -340,7 +390,6 @@ function key_time_left($v) {
 
         <!-- SEKME 2: BANNED KEYLER -->
         <div id="bannedTab" class="content-area">
-            <!-- GLOBAL STOP BUTONU SADECE BURADA -->
             <div class="stop-box">
                 <div>
                     <div class="stop-title">
@@ -358,7 +407,6 @@ function key_time_left($v) {
                 </form>
             </div>
 
-            <!-- BANLI KEYLERİN LİSTESİ -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">Manually Banned Keys</div>
