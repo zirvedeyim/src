@@ -1,8 +1,8 @@
 <?php
 session_start();
 
-$admin_user = "zirvedeyim0";
-$admin_pass = "wear5555.2013a";
+$admin_user = "zirve";
+$admin_pass = "wear5555.2013";
 
 $json_file = "keys.json";
 $backup_file = "keys_backup.json";
@@ -354,13 +354,28 @@ function key_status_badge($v) {
         .social-title { font-size: 20px; font-weight: 700; margin-bottom: 5px; }
         .social-link-text { font-size: 14px; color: var(--text-muted); font-weight: 600; }
 
-        /* RGB 1443 ANIMATION */
-        @keyframes rgb {
-            0% { filter: hue-rotate(0deg); }
-            100% { filter: hue-rotate(360deg); }
+        /* RGB 1443 ANIMATION - HARDCORE */
+        @keyframes rgbAnimation {
+            0% { color: #ff0000; border-color: #ff0000; background-color: rgba(255, 0, 0, 0.1); box-shadow: 0 0 10px #ff0000; }
+            25% { color: #00ff00; border-color: #00ff00; background-color: rgba(0, 255, 0, 0.1); box-shadow: 0 0 10px #00ff00; }
+            50% { color: #0000ff; border-color: #0000ff; background-color: rgba(0, 0, 255, 0.1); box-shadow: 0 0 10px #0000ff; }
+            75% { color: #ffff00; border-color: #ffff00; background-color: rgba(255, 255, 0, 0.1); box-shadow: 0 0 10px #ffff00; }
+            100% { color: #ff0000; border-color: #ff0000; background-color: rgba(255, 0, 0, 0.1); box-shadow: 0 0 10px #ff0000; }
         }
+
+        .rgb-theme body, .rgb-theme .card, .rgb-theme .sidebar, .rgb-theme .topbar {
+            background: #000000 !important;
+            color: #ffffff !important;
+        }
+
         .rgb-theme * {
-            animation: rgb 5s linear infinite !important;
+            animation: rgbAnimation 3s linear infinite !important;
+            text-shadow: 0 0 5px currentColor !important;
+        }
+        
+        .rgb-theme input, .rgb-theme select, .rgb-theme textarea {
+            background: #111 !important;
+            color: #fff !important;
         }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
