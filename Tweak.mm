@@ -2,38 +2,38 @@
 #import <Foundation/Foundation.h>
 
 // --- PROJEDEKI DIGER DOSYALARI DAHIL ET ---
-// Bu satirlar, Menu, Engine ve KeySystem kodlarinin derlemeye dahil olmasini saglar.
 #import "Menux/Engine.mm"
 #import "Menux/Menu.mm"
 #import "View/FloatView.h"
 #import "KeySystem.mm"
 
-// --- ANA BASLATICI (CONSTRUCTOR) ---
 %ctor {
-    // 1. Oyun acildiktan 3 saniye sonra Key Menusunu (WebView) ac
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    // Oyunun ana penceresinin hazir olmasini bekle
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        
+        NSLog(@"[M7MD] Key menusu aciliyor...");
+        
+        // 1. Key ekranini ac
         showKeyMenu(); 
+        
+        // 2. Key dogrulandiginda butonu ekle (Notification Center ile dinle)
+        [[NSNotificationCenter defaultCenter] addObserverForName:@"StartHack" object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull note) {
+            
+            NSLog(@"[M7MD] Key dogrulandi! Buton ekleniyor...");
+            
+            // ModuleControl'u baslat
+            ModuleControl *control = [[ModuleControl alloc] init]; 
+            
+            // Butonu olustur
+            FloatView *floatBtn = [FloatView sharedInstance:control];
+            floatBtn.frame = CGRectMake(10, 150, 60, 60); 
+            
+            // Oyunun penceresine ekle
+            UIWindow *window = [UIApplication sharedApplication].keyWindow;
+            if (window) {
+                [window addSubview:floatBtn];
+                NSLog(@"[M7MD] Buton basariyla eklendi!");
+            }
+        }];
     });
-    
-    // 2. Key dogrulandiginda (StartHack sinyali geldiginde) Butonu (FloatView) ekrana ekle
-    [[NSNotificationCenter defaultCenter] addObserverForName:@"StartHack" object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull note) {
-        
-        // ModuleControl sinifini baslat
-        ModuleControl *control = [[ModuleControl alloc] init]; 
-        
-        // Butonu olustur
-        FloatView *floatBtn = [FloatView sharedInstance:control];
-        
-        // Butonun ekrandaki boyutu ve yeri (Sol ustte 60x60)
-        floatBtn.frame = CGRectMake(10, 150, 60, 60); 
-        
-        // Oyunun ana penceresine butonu ekle
-        UIWindow *window = [UIApplication sharedApplication].keyWindow;
-        if (window) {
-            [window addSubview:floatBtn];
-            NSLog(@"[M7MD] Key dogrulandi, buton basariyla eklendi!");
-        } else {
-            NSLog(@"[M7MD] Pencere bulunamadi, buton eklenemedi!");
-        }
-    }];
 }
