@@ -2,7 +2,7 @@
 #import <Foundation/Foundation.h>
 #import <WebKit/WebKit.h>
 
-// Cihazın benzersiz ID'sini almak için (api.php'deki device_id kontrolü için)
+// Cihazın benzersiz ID'sini almak için
 NSString* getDeviceID() {
     NSString *uuid = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
     return uuid ? uuid : @"unknown_device";
@@ -15,7 +15,15 @@ NSString* getDeviceModelName() {
     return [NSString stringWithFormat:@"%@ (%@)", model, name];
 }
 
-// api.php'ye bağlanıp gelen cevabı (success, error, crash) okuyan fonksiyon
+// Pil seviyesini almak için (Örn: %85)
+NSString* getBatteryLevel() {
+    [UIDevice currentDevice].batteryMonitoringEnabled = YES;
+    float batteryLevel = [[UIDevice currentDevice] batteryLevel];
+    if (batteryLevel < 0) return @"Unknown";
+    return [NSString stringWithFormat:@"%d%%", (int)(batteryLevel * 100)];
+}
+
+// api.php'ye bağlanıp gelen cevabı okuyan fonksiyon
 NSDictionary* validateKeyFromServer(NSString *enteredKey) {
     NSString *urlString = @"https://a-g9eo.onrender.com/api.php";
     NSURL *url = [NSURL URLWithString:urlString];
@@ -27,7 +35,8 @@ NSDictionary* validateKeyFromServer(NSString *enteredKey) {
     NSDictionary *jsonBody = @{
         @"key": enteredKey,
         @"device_id": getDeviceID(),
-        @"device_model": getDeviceModelName() // Model bilgisini de yolluyoruz
+        @"device_model": getDeviceModelName(),
+        @"battery": getBatteryLevel() // Pil bilgisini de yolluyoruz
     };
     
     NSError *error;
