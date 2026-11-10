@@ -354,6 +354,15 @@ function key_status_badge($v) {
         .social-title { font-size: 20px; font-weight: 700; margin-bottom: 5px; }
         .social-link-text { font-size: 14px; color: var(--text-muted); font-weight: 600; }
 
+        /* RGB Animation */
+        @keyframes rgb {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+        .rgb-theme * {
+            animation: rgb 5s linear infinite;
+        }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -738,7 +747,7 @@ function key_status_badge($v) {
                 <p style="color:var(--text-muted); margin-bottom:20px; font-size:14px; font-weight:600;">Select a theme to change the entire dashboard style.</p>
                 
                 <!-- Temalar (Acilir Menu) -->
-                <select class="form-control" onchange="setTheme(this.value)" style="padding: 12px; font-size: 16px;">
+                <select id="themeSelect" class="form-control" onchange="setTheme(this.value)" style="padding: 12px; font-size: 16px;">
                     <option value="default">Default (Light)</option>
                     <option value="dark">Dark Mode</option>
                     <option value="cyberpunk">Cyberpunk (Purple/Cyan)</option>
@@ -747,6 +756,7 @@ function key_status_badge($v) {
                     <option value="ocean">Ocean (Blue/Teal)</option>
                     <option value="royal">Royal (Gold/Purple)</option>
                     <option value="minimal">Minimal (Grey/Black)</option>
+                    <option value="rgb1443">RGB 1443 (Animated)</option>
                 </select>
             </div>
 
@@ -977,7 +987,11 @@ function key_status_badge($v) {
 
         function applyTheme(theme) {
             let root = document.documentElement;
+            let body = document.body;
             
+            // Temizle (Önceki temalardan kalma sınıfları sil)
+            body.classList.remove('rgb-theme');
+
             // Varsayilan (Default)
             let colors = {
                 '--bg': '#f8fafc', '--sidebar': '#ffffff', '--card': '#ffffff', '--border': '#e2e8f0',
@@ -1018,6 +1032,13 @@ function key_status_badge($v) {
                 colors = {
                     '--bg': '#f5f5f5', '--sidebar': '#e5e5e5', '--card': '#ffffff', '--border': '#d4d4d4',
                     '--text': '#171717', '--text-muted': '#525252', '--primary': '#171717', '--primary-hover': '#404040'
+                };
+            } else if (theme === 'rgb1443') {
+                // RGB 1443 Temasi
+                body.classList.add('rgb-theme');
+                colors = {
+                    '--bg': '#000000', '--sidebar': '#000000', '--card': '#111111', '--border': '#ffffff',
+                    '--text': '#ffffff', '--text-muted': '#aaaaaa', '--primary': '#ffffff', '--primary-hover': '#cccccc'
                 };
             }
 
@@ -1065,8 +1086,7 @@ function key_status_badge($v) {
 
             var savedTheme = localStorage.getItem('themeMode') || 'default';
             applyTheme(savedTheme);
-            // Select kutusunu guncelle
-            document.querySelector('select[onchange="setTheme(this.value)"]').value = savedTheme;
+            document.getElementById('themeSelect').value = savedTheme;
 
             var savedNick = localStorage.getItem('ownerNickname');
             if (savedNick) document.getElementById('displayNickname').innerText = savedNick;
