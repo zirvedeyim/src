@@ -46,8 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['create_key'])) {
         $duration_type = $_POST['duration_type'];
         $note = htmlspecialchars($_POST['note']);
-        $custom_key = trim($_POST['custom_key']);
-        $max_devices = max(1, intval($_POST['max_devices']));
+        $max_devices = max(1, intval($_POST['max_devices'])); // MAX DEVICE AYARI
 
         $now = time();
         $expire_time = $now + 86400;
@@ -58,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         elseif ($duration_type == 'LIFETIME') { $expire_time = 0; $prefix = "DARKIOS-LIFETIME-"; }
 
         $random_part = strtoupper(substr(bin2hex(random_bytes(8)), 0, 15));
-        $key = !empty($custom_key) ? $custom_key : $prefix . $random_part;
+        $key = $prefix . $random_part; // Otomatik oluşturma
         
         $keys_data[$key] = [
             "note" => $note, "expire" => $expire_time, "max_devices" => $max_devices,
@@ -77,6 +76,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             elseif ($act == 'block') { $keys_data[$k]['status'] = ($keys_data[$k]['status'] == 'banned') ? ($global_stop ? 'global_banned' : 'active') : 'banned'; }
             elseif ($act == 'reset_hwid') { $keys_data[$k]['devices'] = []; }
             elseif ($act == 'add_time') { if ($keys_data[$k]['expire'] > 0) $keys_data[$k]['expire'] += 86400; }
+            elseif ($act == 'add_device') { // YENİ CİHAZ EKLEME
+                $add_amount = isset($_POST['device_amount']) ? intval($_POST['device_amount']) : 1;
+                if ($add_amount > 0) { $keys_data[$k]['max_devices'] += $add_amount; }
+            }
             file_put_contents($json_file, json_encode($keys_data, JSON_PRETTY_PRINT));
             file_put_contents($backup_file, json_encode($keys_data, JSON_PRETTY_PRINT));
         }
@@ -244,13 +247,18 @@ function key_time_left($v) {
         .badge-orange { background: #ffedd5; color: #9a3412; }
 
         /* AKSİYON BUTONLARI */
-        .action-group { display: flex; gap: 6px; flex-wrap: wrap; }
+        .action-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center;}
         .action-btn { padding: 6px 10px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border); background: #fff; cursor: pointer; transition: 0.2s; font-weight: 500; color: var(--text-muted); }
         .action-btn:hover { background: #f1f5f9; color: var(--text); }
         .action-btn.red { color: var(--danger); border-color: #fca5a5; }
         .action-btn.red:hover { background: #fee2e2; }
         .action-btn.info { color: var(--primary); border-color: #c7d2fe; }
         .action-btn.info:hover { background: #e0e7ff; }
+        
+        /* KÜÇÜK INPUT (Cihaz Ekleme İçin) */
+        .inline-form { display: flex; gap: 4px; align-items: center; }
+        .inline-input { width: 60px; padding: 6px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; text-align: center; outline: none; }
+        .inline-input:focus { border-color: var(--primary); }
 
         /* GLOBAL STOP KUTUSU */
         .stop-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
@@ -335,7 +343,7 @@ function key_time_left($v) {
                             <input type="text" name="note" class="form-control" placeholder="e.g. User123">
                         </div>
                         <div class="form-group">
-                            <label>Max Devices</label>
+                            <label>Max Devices (Örn: 500)</label>
                             <input type="number" name="max_devices" value="1" min="1" class="form-control">
                         </div>
                         <div class="form-group">
@@ -347,10 +355,6 @@ function key_time_left($v) {
                                 <option value="LIFETIME">Lifetime</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Custom Key (Optional)</label>
-                            <input type="text" name="custom_key" class="form-control" placeholder="Leave blank for auto">
-                        </div>
                     </div>
                     <button type="submit" name="create_key" class="btn btn-primary">+ Create New Key</button>
                 </form>
@@ -360,11 +364,10 @@ function key_time_left($v) {
                 <div class="card-header">
                     <div class="card-title">
                         Active Keys
-                        <!-- İSTATİSTİK BADGE (Kırmızı yere) -->
                         <div class="stats-badge">
-                            <span>🟢 Online Devices: <?= $total_online_devices ?></span>
+                            <span>🟢 Online: <?= $total_online_devices ?></span>
                             <span style="color:#cbd5e1;">|</span>
-                            <span>📦 Total Keys: <?= $total_keys_count ?></span>
+                            <span>📦 Total: <?= $total_keys_count ?></span>
                         </div>
                     </div>
                     <input type="text" id="searchInput" placeholder="Search keys..." class="form-control" style="width: 250px;" onkeyup="filterKeys()">
@@ -376,7 +379,7 @@ function key_time_left($v) {
                                 <th>License Key</th>
                                 <th>Status</th>
                                 <th>Duration</th>
-                                <th>HWID</th>
+                                <th>Devices</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -393,9 +396,22 @@ function key_time_left($v) {
                                     <td><span style="font-weight:600;"><?= count($v['devices']) ?></span> / <?= $v['max_devices'] ?></td>
                                     <td>
                                         <div class="action-group">
-                                            <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="reset_hwid"><button type="submit" name="action_key" class="action-btn">Reset HWID</button></form>
+                                            <!-- Cihaz Sıfırlama -->
+                                            <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="reset_hwid"><button type="submit" name="action_key" class="action-btn" title="Tüm cihazları sıfırla">Reset HWID</button></form>
+                                            
+                                            <!-- Banlama -->
                                             <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="block"><button type="submit" name="action_key" class="action-btn red">Ban</button></form>
+                                            
+                                            <!-- Süre Ekleme -->
                                             <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="add_time"><button type="submit" name="action_key" class="action-btn">+1D</button></form>
+
+                                            <!-- Cihaz Ekleme (Yeni) -->
+                                            <form method="POST" class="inline-form">
+                                                <input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>">
+                                                <input type="hidden" name="sub_action" value="add_device">
+                                                <input type="number" name="device_amount" class="inline-input" value="1" min="1" title="Eklenecek cihaz sayısı">
+                                                <button type="submit" name="action_key" class="action-btn info" title="Cihaz limiti ekle">+Add Dev</button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -474,7 +490,6 @@ function key_time_left($v) {
                             $deviceCount = count($v['devices']);
                     ?>
                             <div class="device-key-block">
-                                <!-- Tıklanabilir Başlık -->
                                 <div class="device-key-header" onclick="toggleDeviceList(this)">
                                     <div class="device-key-title">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
@@ -484,7 +499,6 @@ function key_time_left($v) {
                                     <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                                 </div>
                                 
-                                <!-- Açılır İçerik (Cihazlar) -->
                                 <div class="device-list-content">
                                     <?php foreach($v['devices'] as $index => $dev): 
                                         $devId = (is_array($dev)) ? ($dev['id'] ?? 'Unknown') : $dev;
@@ -561,7 +575,6 @@ function key_time_left($v) {
             document.getElementById('noResults').style.display = (visibleCount === 0 && rows.length > 0) ? 'block' : 'none';
         }
 
-        // Device Info Sekmesi İçin Accordion (Aç/Kapa) Mantığı
         function toggleDeviceList(headerElement) {
             var content = headerElement.nextElementSibling;
             var chevron = headerElement.querySelector('.chevron');
