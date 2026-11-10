@@ -221,6 +221,7 @@ function key_status_badge($v) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* DEFAULT THEME VARIABLES */
         :root {
             --bg: #f8fafc; --sidebar: #ffffff; --card: #ffffff; --border: #e2e8f0;
             --text: #0f172a; --text-muted: #64748b; --primary: #6366f1; --primary-hover: #4f46e5;
@@ -232,7 +233,7 @@ function key_status_badge($v) {
         /* SIDEBAR */
         .sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .logo-area { padding: 24px; display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; border-bottom: 1px solid var(--border); }
-        .logo-icon { background: var(--primary); color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; border: 2px solid #e2e8f0;}
+        .logo-icon { background: var(--primary); color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; border: 2px solid var(--border);}
         .logo-icon img { width: 100%; height: 100%; object-fit: cover; }
         
         .nav-section { padding: 20px 16px; flex: 1; overflow-y: auto;}
@@ -242,18 +243,16 @@ function key_status_badge($v) {
         .nav-item svg { width: 18px; height: 18px; }
 
         .sidebar-bottom { padding: 20px; border-top: 1px solid var(--border); }
-        .user-profile { display: flex; align-items: center; gap: 12px; margin-top: 15px; cursor: pointer; padding: 8px; border-radius: 8px; transition: 0.2s; background: #f8fafc; border: 1px solid var(--border);}
+        .user-profile { display: flex; align-items: center; gap: 12px; margin-top: 15px; cursor: pointer; padding: 8px; border-radius: 8px; transition: 0.2s; background: var(--bg); border: 1px solid var(--border);}
         .user-profile:hover { background: #f1f5f9; }
         .user-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; justify-content: center; align-items: center; font-weight: 700; overflow: hidden; position: relative; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
         .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
         /* MAIN CONTENT */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; position: relative; }
+        #dynamic-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 0; opacity: 0.95; pointer-events: none; display: none; }
         
-        /* DINAMIK ARKA PLAN (Opaklık %95) */
-        #dynamic-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 0; opacity: 0.95; pointer-events: none; }
-        
-        .topbar { height: 72px; background: #fff; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; position: relative; z-index: 1;}
+        .topbar { height: 72px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; position: relative; z-index: 1;}
         .breadcrumb { font-size: 14px; color: var(--text-muted); font-weight: 600; }
         .breadcrumb span { color: var(--text); }
         
@@ -268,7 +267,7 @@ function key_status_badge($v) {
         
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 16px; }
         .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
-        .form-control { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s; font-weight: 600; color: var(--text);}
+        .form-control { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s; font-weight: 600; color: var(--text); background: var(--card);}
         .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
         
         .btn { padding: 10px 16px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
@@ -283,14 +282,14 @@ function key_status_badge($v) {
         /* TABLE */
         .table-responsive { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; background: #f8fafc; }
+        th { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; background: var(--bg); }
         td { padding: 16px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 500; }
         tr:last-child td { border-bottom: none; }
-        tr:hover td { background: #f8fafc; }
+        tr:hover td { background: var(--bg); }
 
-        .key-text { font-family: monospace; font-weight: 700; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 13px; border: 1px solid #e2e8f0; display: inline-block; margin-bottom: 4px;}
+        .key-text { font-family: monospace; font-weight: 700; background: var(--bg); padding: 4px 8px; border-radius: 4px; font-size: 13px; border: 1px solid var(--border); display: inline-block; margin-bottom: 4px;}
         .icon-btn { background: none; border: none; cursor: pointer; padding: 4px; border-radius: 4px; color: var(--text-muted); transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
-        .icon-btn:hover { background: #e2e8f0; color: var(--primary); }
+        .icon-btn:hover { background: var(--border); color: var(--primary); }
         
         .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
         .badge-green { background: #dcfce7; color: #166534; }
@@ -299,43 +298,43 @@ function key_status_badge($v) {
         .badge-orange { background: #ffedd5; color: #9a3412; }
 
         .action-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center;}
-        .action-btn { padding: 6px 10px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border); background: #fff; cursor: pointer; transition: 0.2s; font-weight: 600; color: var(--text-muted); }
-        .action-btn:hover { background: #f1f5f9; color: var(--text); }
+        .action-btn { padding: 6px 10px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); cursor: pointer; transition: 0.2s; font-weight: 600; color: var(--text-muted); }
+        .action-btn:hover { background: var(--bg); color: var(--text); }
         .action-btn.red { color: var(--danger); border-color: #fca5a5; }
         .action-btn.red:hover { background: #fee2e2; }
         .action-btn.info { color: var(--primary); border-color: #c7d2fe; }
         .action-btn.info:hover { background: #e0e7ff; }
         
         .inline-form { display: flex; gap: 4px; align-items: center; }
-        .inline-input { width: 50px; padding: 6px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); border-radius: 6px; text-align: center; outline: none; }
-        .inline-select { padding: 6px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); border-radius: 6px; outline: none; }
+        .inline-input { width: 50px; padding: 6px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); border-radius: 6px; text-align: center; outline: none; background: var(--card); color: var(--text);}
+        .inline-select { padding: 6px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); border-radius: 6px; outline: none; background: var(--card); color: var(--text);}
 
         .stop-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
         .stop-title { font-size: 16px; font-weight: 700; color: var(--danger); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;}
         .stop-desc { font-size: 13px; color: #7f1d1d; font-weight: 600;}
 
-        .device-key-block { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; background: #fff; }
-        .device-key-header { padding: 16px 20px; background: #f8fafc; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; font-weight: 700; }
-        .device-key-header:hover { background: #f1f5f9; }
+        .device-key-block { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; background: var(--card); }
+        .device-key-header { padding: 16px 20px; background: var(--bg); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; font-weight: 700; }
+        .device-key-header:hover { background: var(--border); }
         .device-key-title { font-family: monospace; color: var(--primary); font-size: 15px; display: flex; align-items: center; gap: 10px;}
         .device-count-badge { background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-family: 'Inter', sans-serif;}
-        .device-list-content { display: none; padding: 20px; border-top: 1px solid var(--border); background: #fff; }
+        .device-list-content { display: none; padding: 20px; border-top: 1px solid var(--border); background: var(--card); }
         
-        .device-item { padding: 16px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; background: #f8fafc; }
+        .device-item { padding: 16px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; background: var(--bg); }
         .device-item:last-child { margin-bottom: 0; }
         .device-item-title { font-weight: 700; color: var(--text); margin-bottom: 12px; font-size: 14px; display: flex; justify-content: space-between;}
         .device-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
         .device-row span:first-child { color: var(--text-muted); font-weight: 600;}
         .device-row span:last-child { font-weight: 700; color: var(--text); }
 
-        .bulk-result-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 20px; position: relative;}
-        .bulk-textarea { width: 100%; height: 300px; padding: 15px; font-family: monospace; font-size: 14px; font-weight: 600; border: 1px solid var(--border); border-radius: 8px; resize: vertical; outline: none; background: #fff; color: var(--text); line-height: 1.5;}
+        .bulk-result-box { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 20px; position: relative;}
+        .bulk-textarea { width: 100%; height: 300px; padding: 15px; font-family: monospace; font-size: 14px; font-weight: 600; border: 1px solid var(--border); border-radius: 8px; resize: vertical; outline: none; background: var(--card); color: var(--text); line-height: 1.5;}
 
-        .search-bar { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; width: 250px; font-weight: 600;}
+        .search-bar { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; width: 250px; font-weight: 600; background: var(--card); color: var(--text);}
 
         /* MODAL */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: #fff; padding: 30px; border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .modal-content { background: var(--card); padding: 30px; border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .modal-title { font-size: 18px; font-weight: 700; }
         .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); }
@@ -355,6 +354,11 @@ function key_status_badge($v) {
         .social-title { font-size: 20px; font-weight: 700; margin-bottom: 5px; }
         .social-link-text { font-size: 14px; color: var(--text-muted); font-weight: 600; }
 
+        /* THEME GRID */
+        .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; margin-top: 10px; }
+        .theme-color { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s; }
+        .theme-color:hover { transform: scale(1.1); border-color: #fff; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -370,7 +374,6 @@ function key_status_badge($v) {
         </div>
         
         <div class="nav-section">
-            <!-- YENİ MAIN PAGE SEKMESİ EN ÜSTTE -->
             <a href="#" class="nav-item active" onclick="switchTab('mainPageTab', this)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                 Main Page
@@ -423,10 +426,10 @@ function key_status_badge($v) {
             <div class="breadcrumb">Dashboard / <span id="currentPageTitle">Main Page</span></div>
         </header>
 
-        <!-- YENİ SEKME: MAIN PAGE (TELEGRAM) -->
+        <!-- MAIN PAGE (TELEGRAM) -->
         <div id="mainPageTab" class="content-area active">
             <div class="main-page-container">
-                <!-- Telegram Kanalı -->
+                <!-- Telegram -->
                 <a href="https://t.me/dylibsafe" target="_blank" class="social-card">
                     <div class="social-icon" style="color: #0088cc;">
                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.686c.223-.198-.054-.31-.346-.112l-6.4 4.02-2.76-.862c-.6-.188-.615-.6.125-.89l10.78-4.155c.5-.185.936.112.78.89z"/></svg>
@@ -435,7 +438,7 @@ function key_status_badge($v) {
                     <div class="social-link-text">https://t.me/dylibsafe</div>
                 </a>
 
-                <!-- Telegram Kanalı 2 -->
+                <!-- Channel -->
                 <a href="https://t.me/qtyg1" target="_blank" class="social-card">
                     <div class="social-icon" style="color: #0088cc;">
                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.686c.223-.198-.054-.31-.346-.112l-6.4 4.02-2.76-.862c-.6-.188-.615-.6.125-.89l10.78-4.155c.5-.185.936.112.78.89z"/></svg>
@@ -446,7 +449,7 @@ function key_status_badge($v) {
             </div>
         </div>
 
-        <!-- SEKME: TÜM KEYLER -->
+        <!-- ALL KEYS -->
         <div id="keysTab" class="content-area">
             <div class="card">
                 <div class="card-header">
@@ -568,7 +571,7 @@ function key_status_badge($v) {
             </div>
         </div>
 
-        <!-- SEKME 2: BANNED KEYLER -->
+        <!-- BANNED KEYS -->
         <div id="bannedTab" class="content-area">
             <div class="stop-box">
                 <div>
@@ -626,7 +629,7 @@ function key_status_badge($v) {
             </div>
         </div>
 
-        <!-- SEKME 3: CİHAZ BİLGİLERİ -->
+        <!-- DEVICE INFO -->
         <div id="infoTab" class="content-area">
             <div class="card">
                 <div class="card-header">
@@ -678,7 +681,7 @@ function key_status_badge($v) {
             </div>
         </div>
 
-        <!-- SEKME 4: BULK KEY -->
+        <!-- BULK KEY -->
         <div id="bulkTab" class="content-area">
             <div class="card">
                 <div class="card-header">
@@ -731,21 +734,51 @@ function key_status_badge($v) {
             </div>
         </div>
 
-        <!-- SEKME 5: SETTINGS -->
+        <!-- SETTINGS (TEMA VE ARKA PLAN) -->
         <div id="settingsTab" class="content-area">
             <div class="card">
                 <div class="card-header">
-                    <div class="card-title">Settings</div>
+                    <div class="card-title">Theme Colors</div>
                 </div>
-                <p style="color:var(--text-muted); margin-bottom:20px; font-size:14px; font-weight:600;">Manage your API settings and background.</p>
+                <p style="color:var(--text-muted); margin-bottom:20px; font-size:14px; font-weight:600;">Select a primary color for the dashboard.</p>
                 
-                <div style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:16px;">
-                    <div style="font-weight:700; margin-bottom:4px;">Background Image</div>
-                    <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">Upload an image to change the dashboard background.</p>
-                    <input type="file" id="bgUpload" accept="image/*" class="form-control" onchange="uploadBackground(this)">
+                <!-- 15 Farkli Tema Rengi -->
+                <div class="theme-grid">
+                    <div class="theme-color" style="background: #6366f1;" onclick="setTheme('#6366f1')" title="Indigo"></div>
+                    <div class="theme-color" style="background: #ef4444;" onclick="setTheme('#ef4444')" title="Red"></div>
+                    <div class="theme-color" style="background: #10b981;" onclick="setTheme('#10b981')" title="Green"></div>
+                    <div class="theme-color" style="background: #f59e0b;" onclick="setTheme('#f59e0b')" title="Yellow"></div>
+                    <div class="theme-color" style="background: #3b82f6;" onclick="setTheme('#3b82f6')" title="Blue"></div>
+                    <div class="theme-color" style="background: #8b5cf6;" onclick="setTheme('#8b5cf6')" title="Purple"></div>
+                    <div class="theme-color" style="background: #ec4899;" onclick="setTheme('#ec4899')" title="Pink"></div>
+                    <div class="theme-color" style="background: #06b6d4;" onclick="setTheme('#06b6d4')" title="Cyan"></div>
+                    <div class="theme-color" style="background: #f97316;" onclick="setTheme('#f97316')" title="Orange"></div>
+                    <div class="theme-color" style="background: #84cc16;" onclick="setTheme('#84cc16')" title="Lime"></div>
+                    <div class="theme-color" style="background: #14b8a6;" onclick="setTheme('#14b8a6')" title="Teal"></div>
+                    <div class="theme-color" style="background: #d946ef;" onclick="setTheme('#d946ef')" title="Fuchsia"></div>
+                    <div class="theme-color" style="background: #0f172a;" onclick="setTheme('#0f172a')" title="Dark"></div>
+                    <div class="theme-color" style="background: #64748b;" onclick="setTheme('#64748b')" title="Slate"></div>
+                    <div class="theme-color" style="background: #f43f5e;" onclick="setTheme('#f43f5e')" title="Rose"></div>
                 </div>
+            </div>
 
-                <div style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:16px;">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Background Settings</div>
+                </div>
+                <p style="color:var(--text-muted); margin-bottom:20px; font-size:14px; font-weight:600;">Upload a new background image or remove the current one.</p>
+                
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="file" id="bgUpload" accept="image/*" class="form-control" onchange="uploadBackground(this)" style="flex: 1;">
+                    <button type="button" class="btn btn-danger" onclick="removeBackground()">Remove BG</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">API Settings</div>
+                </div>
+                <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:16px;">
                     <div style="font-weight:700; margin-bottom:4px;">API Endpoint</div>
                     <div style="font-family:monospace; color:var(--primary); font-weight:600;">https://a-g9eo.onrender.com/api.php</div>
                 </div>
@@ -804,7 +837,6 @@ function key_status_badge($v) {
         </div>
     </div>
 
-    <!-- GIZLI DOSYA SECME INPUTLARI -->
     <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="uploadAvatar(this)">
 
     <script>
@@ -815,7 +847,6 @@ function key_status_badge($v) {
             document.getElementById(tabId).classList.add('active');
             element.classList.add('active');
             
-            // Baslik degistir
             let title = "Main Page";
             if(tabId === 'keysTab') title = "All Keys";
             if(tabId === 'bannedTab') title = "Banned Keys";
@@ -870,11 +901,8 @@ function key_status_badge($v) {
             navigator.clipboard.writeText(copyText.value).then(function() { alert("All keys copied!"); });
         }
 
-        // --- KEY KOPYALAMA VE DÜZENLEME ---
         function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(function() {
-                alert("Key copied: " + text);
-            });
+            navigator.clipboard.writeText(text).then(function() { alert("Key copied: " + text); });
         }
 
         function openEditModal(keyName) {
@@ -883,48 +911,33 @@ function key_status_badge($v) {
             document.getElementById('editModal').style.display = 'flex';
         }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
+        function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
 
-        // --- SAYAÇ MANTIĞI (Countdown) ---
+        // --- SAYAÇ MANTIĞI ---
         function updateCountdowns() {
             var countdowns = document.querySelectorAll('.countdown');
             var now = Math.floor(Date.now() / 1000);
 
             countdowns.forEach(function(el) {
                 var expire = parseInt(el.getAttribute('data-expire'));
-                if (expire === 0) {
-                    el.innerText = "Lifetime";
-                    el.style.color = "#8b5cf6";
-                    return;
-                }
-
+                if (expire === 0) { el.innerText = "Lifetime"; el.style.color = "#8b5cf6"; return; }
                 var diff = expire - now;
-                if (diff <= 0) {
-                    el.innerText = "Expired";
-                    el.style.color = "#ef4444";
-                    return;
-                }
-
+                if (diff <= 0) { el.innerText = "Expired"; el.style.color = "#ef4444"; return; }
                 var days = Math.floor(diff / 86400);
                 var hours = Math.floor((diff % 86400) / 3600);
                 var minutes = Math.floor((diff % 3600) / 60);
                 var seconds = diff % 60;
-
                 var str = "";
                 if (days > 0) str += days + "d ";
                 if (hours > 0 || days > 0) str += hours + "h ";
                 str += minutes + "m " + seconds + "s";
-
                 el.innerText = str;
             });
         }
-        
         setInterval(updateCountdowns, 1000);
         document.addEventListener("DOMContentLoaded", updateCountdowns);
 
-        // --- PROFIL VE ARKA PLAN MANTIĞI ---
+        // --- PROFIL MANTIĞI ---
         function openProfileModal() {
             document.getElementById('profileModal').style.display = 'flex';
             document.getElementById('inputNickname').value = localStorage.getItem('ownerNickname') || 'OWNER';
@@ -934,10 +947,8 @@ function key_status_badge($v) {
         function saveProfile() {
             var nick = document.getElementById('inputNickname').value;
             var bio = document.getElementById('inputBio').value;
-            
             localStorage.setItem('ownerNickname', nick);
             localStorage.setItem('ownerBio', bio);
-            
             document.getElementById('displayNickname').innerText = nick;
             closeModal('profileModal');
             alert("Profile saved!");
@@ -956,7 +967,6 @@ function key_status_badge($v) {
                         var startX = (img.width - size) / 2;
                         var startY = (img.height - size) / 2;
                         ctx.drawImage(img, startX, startY, size, size, 0, 0, size, size);
-                        
                         var croppedImageData = canvas.toDataURL("image/jpeg");
                         localStorage.setItem('ownerAvatar', croppedImageData);
                         applyAvatar(croppedImageData);
@@ -971,14 +981,25 @@ function key_status_badge($v) {
             document.getElementById('profileImg').src = imgData;
             document.getElementById('profileImg').style.display = 'block';
             document.getElementById('profileText').style.display = 'none';
-            
             document.getElementById('modalProfileImg').src = imgData;
             document.getElementById('modalProfileImg').style.display = 'block';
             document.getElementById('modalProfileText').style.display = 'none';
-            
             document.getElementById('topLogoImg').src = imgData;
             document.getElementById('topLogoImg').style.display = 'block';
             document.getElementById('topLogoText').style.display = 'none';
+        }
+
+        // --- TEMA VE ARKA PLAN MANTIĞI ---
+        function setTheme(color) {
+            document.documentElement.style.setProperty('--primary', color);
+            document.documentElement.style.setProperty('--primary-hover', color); // Hover rengini de esitliyoruz
+            localStorage.setItem('themeColor', color);
+            // Buton renklerini de guncelle
+            document.querySelectorAll('.btn-primary').forEach(el => {
+                el.style.background = color;
+                el.style.borderColor = color;
+            });
+            alert("Theme color updated!");
         }
 
         function uploadBackground(input) {
@@ -994,16 +1015,29 @@ function key_status_badge($v) {
             }
         }
 
-        function applyBackground(bgData) {
-            document.getElementById('dynamic-bg').style.backgroundImage = "url('" + bgData + "')";
+        function removeBackground() {
+            localStorage.removeItem('dashboardBg');
+            document.getElementById('dynamic-bg').style.backgroundImage = "none";
+            document.getElementById('dynamic-bg').style.display = 'none';
+            alert("Background removed!");
         }
 
+        function applyBackground(bgData) {
+            var bgEl = document.getElementById('dynamic-bg');
+            bgEl.style.backgroundImage = "url('" + bgData + "')";
+            bgEl.style.display = 'block';
+        }
+
+        // Sayfa yuklendiginde hafizadaki ayarlari uygula
         window.onload = function() {
             var savedAvatar = localStorage.getItem('ownerAvatar');
             if (savedAvatar) applyAvatar(savedAvatar);
             
             var savedBg = localStorage.getItem('dashboardBg');
             if (savedBg) applyBackground(savedBg);
+
+            var savedTheme = localStorage.getItem('themeColor');
+            if (savedTheme) setTheme(savedTheme);
 
             var savedNick = localStorage.getItem('ownerNickname');
             if (savedNick) document.getElementById('displayNickname').innerText = savedNick;
