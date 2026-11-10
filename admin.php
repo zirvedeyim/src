@@ -54,7 +54,7 @@ if (isset($_POST['login'])) {
     }
 }
 
-// YENİ GİRİŞ EKRANI (Aydınlık Tema)
+// GİRİŞ EKRANI
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     ?>
     <!DOCTYPE html>
@@ -63,24 +63,24 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
         <meta charset="UTF-8">
         <title>Login — DARK IOS</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
-            * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-            body { background-color: #f3f4f6; display: flex; justify-content: center; align-items: center; height: 100vh; color: #1f2937; }
-            .login-card { background: #fff; padding: 40px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01); border: 1px solid #e5e7eb; }
-            .login-card h2 { text-align: center; font-size: 24px; font-weight: 700; margin-bottom: 30px; color: #111827; }
+            * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
+            body { background-color: #0d0b14; display: flex; justify-content: center; align-items: center; height: 100vh; color: #fff; }
+            .login-card { background: #161224; padding: 50px 40px; border-radius: 24px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); border: 1px solid #2d2440; }
+            .login-card h2 { text-align: center; font-size: 26px; font-weight: 700; margin-bottom: 30px; color: #fff; }
             .input-group { margin-bottom: 20px; }
-            .input-group label { display: block; font-size: 13px; font-weight: 600; color: #4b5563; margin-bottom: 8px; }
-            .input-group input { width: 100%; padding: 14px; background: #f9fafb; border: 1px solid #d1d5db; border-radius: 10px; font-size: 15px; color: #111827; transition: 0.2s; outline: none; }
-            .input-group input:focus { border-color: #3b82f6; background: #fff; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-            .btn-submit { width: 100%; padding: 14px; background: #111827; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-            .btn-submit:hover { background: #374151; }
-            .error { color: #dc2626; font-size: 13px; text-align: center; margin-bottom: 20px; background: #fef2f2; padding: 12px; border-radius: 8px; border: 1px solid #fecaca; }
+            .input-group label { display: block; font-size: 13px; font-weight: 600; color: #a78bfa; margin-bottom: 8px; }
+            .input-group input { width: 100%; padding: 14px; background: #0d0b14; border: 1px solid #2d2440; border-radius: 12px; font-size: 15px; color: #fff; transition: 0.2s; outline: none; }
+            .input-group input:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,0.2); }
+            .btn-submit { width: 100%; padding: 15px; background: #8b5cf6; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+            .btn-submit:hover { background: #7c3aed; transform: translateY(-2px); }
+            .error { color: #f87171; font-size: 13px; text-align: center; margin-bottom: 20px; background: rgba(248,113,113,0.1); padding: 12px; border-radius: 8px; }
         </style>
     </head>
     <body>
         <div class="login-card">
-            <h2>Admin Login</h2>
+            <h2>DARK IOS</h2>
             <?php if(isset($login_error)) echo "<div class='error'>$login_error</div>"; ?>
             <form method="POST">
                 <div class="input-group">
@@ -100,6 +100,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit;
 }
 
+// POST İŞLEMLERİ
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['create_key'])) {
         $duration_type = $_POST['duration_type'];
@@ -116,10 +117,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         elseif ($duration_type == '7D') { $expire_time = $now + (7 * 86400); $prefix = "DARKIOS-7D-"; }
         elseif ($duration_type == '30D') { $expire_time = $now + (30 * 86400); $prefix = "DARKIOS-30D-"; }
         elseif ($duration_type == 'LIFETIME') { $expire_time = 0; $prefix = "DARKIOS-LIFETIME-"; }
-        elseif ($duration_type == 'TEST_1D') { $expire_time = $now + 86400; $prefix = "DARKIOS-TESTERKEY-"; }
-        elseif ($duration_type == 'TEST_7D') { $expire_time = $now + (7 * 86400); $prefix = "DARKIOS-TESTERKEY-"; }
-        elseif ($duration_type == 'TEST_30D') { $expire_time = $now + (30 * 86400); $prefix = "DARKIOS-TESTERKEY-"; }
-        elseif ($duration_type == 'TEST_LIFETIME') { $expire_time = 0; $prefix = "DARKIOS-TESTERKEY-"; }
 
         $random_part = strtoupper(substr(bin2hex(random_bytes(8)), 0, 15));
         
@@ -128,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "note" => $note,
             "expire" => $expire_time,
             "max_devices" => $max_devices,
-            "devices" => [],
+            "devices" => [], // İçine {"id": "...", "model": "..."} şeklinde eklenecek
             "status" => "active"
         ];
         file_put_contents($json_file, json_encode($keys_data, JSON_PRETTY_PRINT));
@@ -169,92 +166,112 @@ function key_status_badge($v) {
 }
 
 function key_time_left($v) {
-    if ($v['expire'] == 0) return '<span style="color:#8b5cf6; font-weight:600;">Lifetime</span>';
+    if ($v['expire'] == 0) return '<span style="color:#c084fc; font-weight:600;">Lifetime</span>';
     $diff = $v['expire'] - time();
-    if ($diff <= 0) return '<span style="color:#ef4444; font-weight:600;">Expired</span>';
+    if ($diff <= 0) return '<span style="color:#f87171; font-weight:600;">Expired</span>';
     $days = ceil($diff / 86400);
-    return '<span style="color:#6b7280;">' . $days . ' days</span>';
+    return '<span style="color:#94a3b8;">' . $days . ' days</span>';
 }
 ?>
 
-<!-- ANA PANEL: BENTO KUTU TASARIMI (LIGHT MODE) -->
+<!-- ANA PANEL: SEKMELİ VE FARKLI RENK PALETLİ TASARIM -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Dashboard — DARK IOS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background-color: #f8fafc; color: #0f172a; padding-bottom: 50px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
+        body { background-color: #0d0b14; color: #e2e8f0; padding-bottom: 50px; }
         
-        /* ÜST BAR (Yatay) */
-        .topbar { background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; height: 72px; position: sticky; top: 0; z-index: 50; }
-        .brand { font-size: 20px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 10px; }
-        .brand-icon { background: #0f172a; color: #fff; width: 32px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center; }
+        /* ÜST BAR */
+        .topbar { background: #161224; border-bottom: 1px solid #2d2440; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; height: 72px; position: sticky; top: 0; z-index: 50; }
+        .brand { font-size: 22px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .brand-icon { background: #8b5cf6; color: #fff; width: 34px; height: 34px; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-weight: 800; }
         
         .top-actions { display: flex; gap: 12px; align-items: center; }
-        .btn-outline { background: #fff; border: 1px solid #cbd5e1; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #475569; cursor: pointer; text-decoration: none; transition: 0.2s; }
-        .btn-outline:hover { background: #f1f5f9; color: #0f172a; }
-        .btn-danger-outline { color: #ef4444; border-color: #fca5a5; }
-        .btn-danger-outline:hover { background: #fef2f2; }
+        .btn-outline { background: transparent; border: 1px solid #2d2440; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #cbd5e1; cursor: pointer; text-decoration: none; transition: 0.2s; }
+        .btn-outline:hover { background: #2d2440; color: #fff; }
+        .btn-danger-outline { color: #f87171; border-color: rgba(248,113,113,0.3); }
+        .btn-danger-outline:hover { background: rgba(248,113,113,0.1); }
 
-        /* ANA GRID YAPISI */
-        .main-container { max-width: 1300px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 350px 1fr; gap: 24px; align-items: start; }
-        @media (max-width: 900px) { .main-container { grid-template-columns: 1fr; } }
+        /* SEKMELER (TABS) */
+        .tabs-container { max-width: 1300px; margin: 40px auto 0; padding: 0 20px; display: flex; gap: 10px; border-bottom: 1px solid #2d2440; padding-bottom: 20px; }
+        .tab-btn { background: transparent; border: none; color: #94a3b8; font-size: 16px; font-weight: 600; cursor: pointer; padding: 10px 20px; border-radius: 8px; transition: 0.2s; }
+        .tab-btn:hover { color: #c084fc; }
+        .tab-btn.active { background: #2d2440; color: #c084fc; }
 
-        /* KART TASARIMI */
-        .card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
-        .card h2 { font-size: 18px; font-weight: 700; margin-bottom: 24px; color: #0f172a; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; }
+        /* İÇERİK ALANLARI */
+        .content-section { display: none; max-width: 1300px; margin: 30px auto; padding: 0 20px; animation: fadeIn 0.3s ease-out; }
+        .content-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* KARTLAR */
+        .card { background: #161224; border: 1px solid #2d2440; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-bottom: 24px; }
+        .card h2 { font-size: 20px; font-weight: 700; margin-bottom: 24px; color: #fff; border-bottom: 1px solid #2d2440; padding-bottom: 16px; }
 
         /* FORM ELEMANLARI */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 8px; }
-        .form-control { width: 100%; padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; color: #0f172a; background: #f8fafc; transition: 0.2s; outline: none; }
-        .form-control:focus { border-color: #3b82f6; background: #fff; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-        .btn-primary { width: 100%; padding: 14px; background: #3b82f6; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #a78bfa; margin-bottom: 8px; }
+        .form-control { width: 100%; padding: 14px; border: 1px solid #2d2440; border-radius: 12px; font-size: 14px; color: #fff; background: #0d0b14; transition: 0.2s; outline: none; }
+        .form-control:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,0.2); }
+        .btn-primary { width: 100%; padding: 15px; background: #8b5cf6; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-primary:hover { background: #7c3aed; transform: translateY(-2px); }
 
-        /* TABLO TASARIMI */
+        /* TABLO */
         .table-wrapper { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { text-align: left; padding: 16px; color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; font-weight: 700; }
-        td { padding: 16px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; color: #334155; }
+        th { text-align: left; padding: 16px; color: #a78bfa; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #2d2440; background: #0d0b14; font-weight: 600; }
+        td { padding: 16px; border-bottom: 1px solid #2d2440; vertical-align: middle; color: #cbd5e1; }
         tr:last-child td { border-bottom: none; }
-        tr:hover td { background: #f8fafc; }
+        tr:hover td { background: rgba(139,92,246,0.05); }
 
-        .key-text { font-family: 'Courier New', Courier, monospace; font-weight: 700; color: #0f172a; font-size: 14px; }
-        .key-note { font-size: 12px; color: #64748b; margin-top: 4px; }
+        .key-text { font-family: 'Courier New', Courier, monospace; font-weight: 700; color: #fff; font-size: 14px; }
+        .key-note { font-size: 12px; color: #94a3b8; margin-top: 4px; }
 
-        /* ETİKETLER (Badges) */
-        .badge { padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-block; }
-        .badge-green { background: #dcfce7; color: #166534; }
-        .badge-red { background: #fee2e2; color: #991b1b; }
-        .badge-gray { background: #f3f4f6; color: #4b5563; }
+        /* ETİKETLER */
+        .badge { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-block; }
+        .badge-green { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .badge-red { background: rgba(248, 113, 113, 0.15); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); }
+        .badge-gray { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
 
         /* AKSİYON BUTONLARI */
-        .action-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+        .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
         .action-buttons form { display: inline; }
-        .action-btn { padding: 6px 10px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff; color: #475569; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; }
-        .action-btn:hover { background: #f1f5f9; color: #0f172a; }
-        .action-btn.red:hover { background: #fef2f2; color: #ef4444; border-color: #fca5a5; }
-        .action-btn.green:hover { background: #f0fdf4; color: #22c55e; border-color: #bbf7d0; }
-        .action-btn.yellow:hover { background: #fffbeb; color: #f59e0b; border-color: #fde68a; }
+        .action-btn { padding: 8px 12px; font-size: 12px; font-weight: 600; border-radius: 8px; border: 1px solid #2d2440; background: #0d0b14; color: #cbd5e1; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+        .action-btn:hover { background: #2d2440; color: #fff; }
+        .action-btn.red:hover { background: rgba(248, 113, 113, 0.2); color: #f87171; border-color: #f87171; }
+        .action-btn.green:hover { background: rgba(34, 197, 94, 0.2); color: #4ade80; border-color: #4ade80; }
+        .action-btn.yellow:hover { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: #fbbf24; }
+        .action-btn.info { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border-color: rgba(59, 130, 246, 0.3); }
+        .action-btn.info:hover { background: rgba(59, 130, 246, 0.2); }
 
-        /* ARAMA ÇUBUĞU */
+        /* ARAMA */
         .search-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .search-input { padding: 10px 16px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; width: 250px; outline: none; transition: 0.2s; }
-        .search-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+        .search-input { padding: 12px 16px; border: 1px solid #2d2440; border-radius: 10px; font-size: 14px; width: 300px; outline: none; background: #0d0b14; color: #fff; transition: 0.2s; }
+        .search-input:focus { border-color: #8b5cf6; }
 
-        /* MODAL */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 100; justify-content: center; align-items: center; }
-        .modal-content { background: #fff; padding: 30px; border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-header h3 { font-size: 18px; font-weight: 700; }
+        /* INFO MODAL (Cihaz Bilgileri) */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 11, 20, 0.8); backdrop-filter: blur(8px); z-index: 100; justify-content: center; align-items: center; }
+        .modal-content { background: #161224; padding: 30px; border-radius: 20px; width: 100%; max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid #2d2440; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #2d2440; padding-bottom: 16px; }
+        .modal-header h3 { font-size: 20px; font-weight: 700; color: #fff; }
         .modal-close { background: none; border: none; font-size: 24px; color: #94a3b8; cursor: pointer; }
-        .modal-body p { color: #64748b; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
-        .btn-danger { width: 100%; padding: 12px; background: #ef4444; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .modal-body p { color: #94a3b8; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+        .device-list { display: flex; flex-direction: column; gap: 12px; }
+        .device-item { background: #0d0b14; border: 1px solid #2d2440; padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 6px; }
+        .device-item strong { color: #a78bfa; font-size: 14px; }
+        .device-item span { color: #cbd5e1; font-size: 13px; }
+        
+        /* SETTINGS */
+        .settings-item { display: flex; justify-content: space-between; align-items: center; padding: 20px; border: 1px solid #2d2440; border-radius: 12px; margin-bottom: 16px; background: #0d0b14; }
+        .settings-item div h4 { font-size: 16px; color: #fff; margin-bottom: 4px; }
+        .settings-item div p { font-size: 13px; color: #94a3b8; }
+        .btn-danger { padding: 10px 20px; background: rgba(248, 113, 113, 0.1); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-danger:hover { background: #f87171; color: #fff; }
     </style>
 </head>
 <body>
@@ -266,49 +283,51 @@ function key_time_left($v) {
             DARK IOS
         </div>
         <div class="top-actions">
-            <button onclick="document.getElementById('settingsModal').style.display='flex'" class="btn-outline">Settings</button>
             <a href="admin.php?action=logout" class="btn-outline btn-danger-outline">Logout</a>
         </div>
     </div>
 
-    <!-- ANA İÇERİK -->
-    <div class="main-container">
+    <!-- SEKMELER -->
+    <div class="tabs-container">
+        <button class="tab-btn active" onclick="openTab('keysTab', this)">Key List</button>
+        <button class="tab-btn" onclick="openTab('settingsTab', this)">Settings</button>
+    </div>
+
+    <!-- SEKME 1: KEY LİSTESİ -->
+    <div id="keysTab" class="content-section active">
         
-        <!-- SOL: KEY OLUŞTURMA -->
+        <!-- Key Oluşturma Formu -->
         <div class="card">
-            <h2>Generate New Key</h2>
+            <h2>Create New Key</h2>
             <form method="POST">
-                <div class="form-group">
-                    <label>User Note (Optional)</label>
-                    <input type="text" name="note" class="form-control" placeholder="e.g. User123">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>User Note (Optional)</label>
+                        <input type="text" name="note" class="form-control" placeholder="e.g. User123">
+                    </div>
+                    <div class="form-group">
+                        <label>Max Devices</label>
+                        <input type="number" name="max_devices" value="1" min="1" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Duration</label>
+                        <select name="duration_type" class="form-control">
+                            <option value="1D">1 Day</option>
+                            <option value="7D">7 Days</option>
+                            <option value="30D">30 Days</option>
+                            <option value="LIFETIME">Lifetime</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Custom Key (Optional)</label>
+                        <input type="text" name="custom_key" class="form-control" placeholder="Leave blank for auto">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Max Devices</label>
-                    <input type="number" name="max_devices" value="1" min="1" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label>Duration</label>
-                    <select name="duration_type" class="form-control">
-                        <option value="1D">1 Day</option>
-                        <option value="7D">7 Days</option>
-                        <option value="30D">30 Days</option>
-                        <option value="LIFETIME">Lifetime</option>
-                        <option disabled>──────────</option>
-                        <option value="TEST_1D">1 Day (Tester)</option>
-                        <option value="TEST_7D">7 Days (Tester)</option>
-                        <option value="TEST_30D">30 Days (Tester)</option>
-                        <option value="TEST_LIFETIME">Lifetime (Tester)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Custom Key (Optional)</label>
-                    <input type="text" name="custom_key" class="form-control" placeholder="Leave blank for auto">
-                </div>
-                <button type="submit" name="create_key" class="btn-primary">Create Key</button>
+                <button type="submit" name="create_key" class="btn-primary">Generate Key</button>
             </form>
         </div>
 
-        <!-- SAĞ: KEY LİSTESİ -->
+        <!-- Key Listesi -->
         <div class="card">
             <div class="search-container">
                 <h2>Key Database</h2>
@@ -338,14 +357,19 @@ function key_time_left($v) {
                                 </td>
                                 <td><?= key_status_badge($v) ?></td>
                                 <td><?= key_time_left($v) ?></td>
-                                <td><span style="font-weight:600; color:#0f172a;"><?= count($v['devices']) ?></span> / <?= $v['max_devices'] ?></td>
+                                <td>
+                                    <span style="font-weight:600; color:#fff;"><?= count($v['devices']) ?></span> / <?= $v['max_devices'] ?>
+                                </td>
                                 <td>
                                     <div class="action-buttons">
+                                        <!-- INFO BUTONU -->
+                                        <button type="button" class="action-btn info" onclick='showInfo(<?= json_encode($v['devices']) ?>)'>Info</button>
+                                        
                                         <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="reset_hwid"><button type="submit" name="action_key" class="action-btn yellow">Reset</button></form>
                                         <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="block"><button type="submit" name="action_key" class="action-btn <?= $is_banned ? 'green' : 'red' ?>"><?= $is_banned ? 'Unban' : 'Ban' ?></button></form>
                                         <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="add_time"><button type="submit" name="action_key" class="action-btn green">+1D</button></form>
                                         <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="limit_inc"><button type="submit" name="action_key" class="action-btn">+Dev</button></form>
-                                        <form method="POST" onsubmit="return confirm('Are you sure you want to delete this key?');"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="delete"><button type="submit" name="action_key" class="action-btn red">Delete</button></form>
+                                        <form method="POST" onsubmit="return confirm('Are you sure?');"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="delete"><button type="submit" name="action_key" class="action-btn red">Delete</button></form>
                                     </div>
                                 </td>
                             </tr>
@@ -360,28 +384,63 @@ function key_time_left($v) {
         </div>
     </div>
 
-    <!-- SETTINGS MODAL -->
-    <div id="settingsModal" class="modal">
+    <!-- SEKME 2: SETTINGS -->
+    <div id="settingsTab" class="content-section">
+        <div class="card">
+            <h2>System Settings</h2>
+            
+            <div class="settings-item">
+                <div>
+                    <h4>API Connection</h4>
+                    <p>Your API endpoint is currently set to: <code>api.php</code></p>
+                </div>
+                <span class="badge badge-green">Online</span>
+            </div>
+
+            <div class="settings-item">
+                <div>
+                    <h4>Database Backup</h4>
+                    <p>Automatically creates a backup in <code>keys_backup.json</code> when changes are made.</p>
+                </div>
+                <span class="badge badge-green">Active</span>
+            </div>
+
+            <div style="border-top:1px solid #2d2440; padding-top:20px; margin-top:30px;">
+                <h3 style="color:#f87171; font-size:16px; margin-bottom:12px;">Danger Zone</h3>
+                <p style="font-size:14px; color:#94a3b8; margin-bottom:20px;">This action will permanently delete all keys from the database.</p>
+                <form method="POST" onsubmit="return confirm('Are you absolutely sure you want to delete ALL keys?');">
+                    <button type="submit" name="delete_all" class="btn-danger">Delete All Keys</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- INFO MODAL (Cihaz Bilgileri) -->
+    <div id="infoModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Settings</h3>
-                <button class="modal-close" onclick="document.getElementById('settingsModal').style.display='none'">&times;</button>
+                <h3>Device Information</h3>
+                <button class="modal-close" onclick="document.getElementById('infoModal').style.display='none'">&times;</button>
             </div>
             <div class="modal-body">
-                <p>Manage your application settings. Be careful with actions in the danger zone.</p>
-                
-                <div style="border-top:1px solid #e2e8f0; padding-top:20px; margin-top:20px;">
-                    <h4 style="color:#ef4444; font-size:14px; margin-bottom:12px;">Danger Zone</h4>
-                    <p style="font-size:13px; margin-bottom:16px;">This action will permanently delete all keys from the database. This cannot be undone.</p>
-                    <form method="POST" onsubmit="return confirm('Are you absolutely sure you want to delete ALL keys?');">
-                        <button type="submit" name="delete_all" class="btn-danger">Delete All Keys</button>
-                    </form>
+                <p>Registered devices using this key:</p>
+                <div id="deviceListContainer" class="device-list">
+                    <!-- JS ile burası doldurulacak -->
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // SEKME GEÇİŞİ
+        function openTab(tabId, btn) {
+            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // ARAMA FONKSİYONU
         function filterKeys() {
             var input = document.getElementById('searchInput');
             var filter = input.value.toLowerCase();
@@ -405,6 +464,34 @@ function key_time_left($v) {
                     noRes.style.display = 'none';
                 }
             }
+        }
+
+        // INFO MODAL GÖSTERİMİ
+        function showInfo(devicesJson) {
+            var container = document.getElementById('deviceListContainer');
+            container.innerHTML = ''; // Temizle
+
+            var devices = devicesJson;
+            if (typeof devices === 'string') {
+                try { devices = JSON.parse(devices); } catch(e) { devices = []; }
+            }
+
+            if (!devices || devices.length === 0) {
+                container.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:20px;">No devices registered for this key yet.</div>';
+            } else {
+                devices.forEach(function(dev, index) {
+                    var devId = dev.id || dev; // Eski formattan gelen düz ID'ler için
+                    var devModel = dev.model || "Unknown Device"; 
+
+                    var div = document.createElement('div');
+                    div.className = 'device-item';
+                    div.innerHTML = '<strong>Device ' + (index + 1) + ': ' + devModel + '</strong>' +
+                                    '<span><b>HWID:</b> ' + devId + '</span>';
+                    container.appendChild(div);
+                });
+            }
+
+            document.getElementById('infoModal').style.display = 'flex';
         }
     </script>
 </body>
