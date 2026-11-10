@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "note" => $note,
             "expire" => $expire_time,
             "max_devices" => $max_devices,
-            "devices" => [], // İçine {"id": "...", "model": "..."} şeklinde eklenecek
+            "devices" => [],
             "status" => "active"
         ];
         file_put_contents($json_file, json_encode($keys_data, JSON_PRETTY_PRINT));
@@ -174,7 +174,7 @@ function key_time_left($v) {
 }
 ?>
 
-<!-- ANA PANEL: SEKMELİ VE FARKLI RENK PALETLİ TASARIM -->
+<!-- ANA PANEL -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -197,7 +197,7 @@ function key_time_left($v) {
         .btn-danger-outline { color: #f87171; border-color: rgba(248,113,113,0.3); }
         .btn-danger-outline:hover { background: rgba(248,113,113,0.1); }
 
-        /* SEKMELER (TABS) */
+        /* SEKMELER */
         .tabs-container { max-width: 1300px; margin: 40px auto 0; padding: 0 20px; display: flex; gap: 10px; border-bottom: 1px solid #2d2440; padding-bottom: 20px; }
         .tab-btn { background: transparent; border: none; color: #94a3b8; font-size: 16px; font-weight: 600; cursor: pointer; padding: 10px 20px; border-radius: 8px; transition: 0.2s; }
         .tab-btn:hover { color: #c084fc; }
@@ -254,7 +254,7 @@ function key_time_left($v) {
         .search-input { padding: 12px 16px; border: 1px solid #2d2440; border-radius: 10px; font-size: 14px; width: 300px; outline: none; background: #0d0b14; color: #fff; transition: 0.2s; }
         .search-input:focus { border-color: #8b5cf6; }
 
-        /* INFO MODAL (Cihaz Bilgileri) */
+        /* INFO MODAL */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 11, 20, 0.8); backdrop-filter: blur(8px); z-index: 100; justify-content: center; align-items: center; }
         .modal-content { background: #161224; padding: 30px; border-radius: 20px; width: 100%; max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid #2d2440; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #2d2440; padding-bottom: 16px; }
@@ -363,7 +363,7 @@ function key_time_left($v) {
                                 <td>
                                     <div class="action-buttons">
                                         <!-- INFO BUTONU -->
-                                        <button type="button" class="action-btn info" onclick='showInfo(<?= json_encode($v['devices']) ?>)'>Info</button>
+                                        <button type="button" class="action-btn info" onclick='showInfo(<?= htmlspecialchars(json_encode($v['devices']), ENT_QUOTES, 'UTF-8') ?>)'>Info</button>
                                         
                                         <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="reset_hwid"><button type="submit" name="action_key" class="action-btn yellow">Reset</button></form>
                                         <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="block"><button type="submit" name="action_key" class="action-btn <?= $is_banned ? 'green' : 'red' ?>"><?= $is_banned ? 'Unban' : 'Ban' ?></button></form>
@@ -466,7 +466,7 @@ function key_time_left($v) {
             }
         }
 
-        // INFO MODAL GÖSTERİMİ
+        // INFO MODAL GÖSTERİMİ (Pil, IP ve Model Destekli)
         function showInfo(devicesJson) {
             var container = document.getElementById('deviceListContainer');
             container.innerHTML = ''; // Temizle
@@ -480,13 +480,23 @@ function key_time_left($v) {
                 container.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:20px;">No devices registered for this key yet.</div>';
             } else {
                 devices.forEach(function(dev, index) {
-                    var devId = dev.id || dev; // Eski formattan gelen düz ID'ler için
-                    var devModel = dev.model || "Unknown Device"; 
+                    // Eski formattaki düz ID'leri de destekle
+                    var devId = (typeof dev === 'object') ? (dev.id || 'Unknown') : dev;
+                    var devModel = (typeof dev === 'object') ? (dev.model || "Unknown Device") : "Unknown Device"; 
+                    var devIP = (typeof dev === 'object') ? (dev.ip || "Unknown IP") : "Unknown IP";
+                    var devDate = (typeof dev === 'object') ? (dev.date || "N/A") : "N/A";
+                    var devBattery = (typeof dev === 'object') ? (dev.battery || "Unknown") : "Unknown";
 
                     var div = document.createElement('div');
                     div.className = 'device-item';
-                    div.innerHTML = '<strong>Device ' + (index + 1) + ': ' + devModel + '</strong>' +
-                                    '<span><b>HWID:</b> ' + devId + '</span>';
+                    div.style.display = 'block';
+                    div.innerHTML = 
+                        '<div style="margin-bottom:8px; font-size:15px; color:#a78bfa; font-weight:700;">📱 ' + devModel + '</div>' +
+                        '<div style="font-size:13px; margin-bottom:4px;"><b>HWID:</b> <span style="color:#94a3b8;">' + devId + '</span></div>' +
+                        '<div style="font-size:13px; margin-bottom:4px;"><b>IP:</b> <span style="color:#fbbf24; font-family:monospace;">' + devIP + '</span></div>' +
+                        '<div style="font-size:13px; margin-bottom:4px;"><b>Battery:</b> <span style="color:#34d399; font-weight:bold;">' + devBattery + '</span></div>' +
+                        '<div style="font-size:12px; color:#64748b; margin-top:8px; border-top:1px solid #2d2440; padding-top:8px;">Login Time: ' + devDate + '</div>';
+                    
                     container.appendChild(div);
                 });
             }
