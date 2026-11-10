@@ -54,7 +54,7 @@ if (isset($_POST['login'])) {
     }
 }
 
-// GİRİŞ EKRANI TASARIMI
+// GİRİŞ EKRANI (Yine şık ama biraz farklı)
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     ?>
     <!DOCTYPE html>
@@ -66,50 +66,30 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
             * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-            body {
-                background-color: #050505;
-                background-image: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #000 80%);
-                height: 100vh; display: flex; justify-content: center; align-items: center; color: #fff;
-            }
-            .login-box {
-                background: rgba(20, 20, 25, 0.7);
-                backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-                padding: 50px 40px; border-radius: 24px; width: 100%; max-width: 420px;
-                border: 1px solid rgba(255,255,255,0.05);
-                box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-                text-align: center;
-            }
-            .login-box h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; letter-spacing: 1px; }
-            .login-box .sub { color: #888; font-size: 14px; margin-bottom: 30px; }
-            .input-group { margin-bottom: 20px; text-align: left; }
-            .input-group label { display: block; font-size: 12px; font-weight: 600; color: #aaa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
-            .input-group input {
-                width: 100%; padding: 16px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
-                color: #fff; border-radius: 12px; font-size: 15px; outline: none; transition: all 0.3s;
-            }
-            .input-group input:focus { border-color: #60a5fa; background: rgba(0,0,0,0.6); box-shadow: 0 0 15px rgba(96,165,250,0.1); }
-            button.btn-login {
-                width: 100%; padding: 16px; margin-top: 10px; background: #fff; color: #000;
-                border: none; font-weight: 700; font-size: 15px; border-radius: 12px; cursor: pointer;
-                transition: transform 0.2s, box-shadow 0.2s;
-            }
-            button.btn-login:hover { box-shadow: 0 0 20px rgba(255,255,255,0.2); transform: scale(1.02); }
-            .error { color: #ff4444; font-size: 13px; background: rgba(255, 68, 68, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid rgba(255, 68, 68, 0.2); }
+            body { background: #0f172a; display: flex; justify-content: center; align-items: center; height: 100vh; color: #fff; }
+            .login-box { background: #1e293b; padding: 40px; border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); border: 1px solid #334155; }
+            .login-box h2 { text-align: center; margin-bottom: 24px; font-weight: 600; color: #e2e8f0; }
+            .input-group { margin-bottom: 16px; }
+            .input-group label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px; }
+            .input-group input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #fff; outline: none; transition: 0.2s; }
+            .input-group input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+            button.btn-login { width: 100%; padding: 12px; background: #3b82f6; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+            button.btn-login:hover { background: #2563eb; }
+            .error { color: #ef4444; font-size: 13px; text-align: center; margin-bottom: 16px; background: rgba(239,68,68,0.1); padding: 10px; border-radius: 6px; }
         </style>
     </head>
     <body>
         <div class="login-box">
             <h2>DARK IOS</h2>
-            <div class="sub">Sign in to Admin Panel</div>
             <?php if(isset($login_error)) echo "<div class='error'>$login_error</div>"; ?>
             <form method="POST">
                 <div class="input-group">
                     <label>Username</label>
-                    <input type="text" name="username" placeholder="Enter username" required autofocus>
+                    <input type="text" name="username" required autofocus>
                 </div>
                 <div class="input-group">
                     <label>Password</label>
-                    <input type="password" name="password" placeholder="Enter password" required>
+                    <input type="password" name="password" required>
                 </div>
                 <button type="submit" name="login" class="btn-login">Sign In</button>
             </form>
@@ -183,226 +163,234 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 function key_status_badge($v) {
-    if ($v['status'] == 'banned') return '<span class="badge badge-danger">Banned</span>';
-    if ($v['expire'] > 0 && $v['expire'] < time()) return '<span class="badge badge-muted">Expired</span>';
-    return '<span class="badge badge-success">Active</span>';
+    if ($v['status'] == 'banned') return '<span class="status-badge status-banned">Banned</span>';
+    if ($v['expire'] > 0 && $v['expire'] < time()) return '<span class="status-badge status-expired">Expired</span>';
+    return '<span class="status-badge status-active">Active</span>';
 }
 
 function key_time_left($v) {
-    if ($v['expire'] == 0) return '<span style="color:#a78bfa;">Lifetime</span>';
+    if ($v['expire'] == 0) return '<span style="color:#a78bfa; font-weight:600;">Lifetime</span>';
     $diff = $v['expire'] - time();
-    if ($diff <= 0) return '<span style="color:#ef4444;">Expired</span>';
+    if ($diff <= 0) return '<span style="color:#ef4444; font-weight:600;">Expired</span>';
     $days = ceil($diff / 86400);
     return '<span style="color:#9ca3af;">' . $days . ' days left</span>';
 }
 ?>
 
-<!-- ANA PANEL TASARIMI -->
+<!-- ANA PANEL: YATAY MENÜ VE YENİ TASARIM -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DARK IOS — Admin</title>
+    <title>DARK IOS Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #050505; --panel: #0f0f13; --border: rgba(255,255,255,0.08);
-            --text: #ffffff; --text-dim: #888; --accent: #60a5fa;
-            --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
-        }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Yan Menü (Sidebar) */
-        .sidebar { width: 260px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 20px; }
-        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding: 0 10px;}
-        .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #60a5fa, #a78bfa); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; color: #000; }
-        .logo-text { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
-        .nav-item { padding: 14px 16px; border-radius: 12px; color: var(--text-dim); font-size: 14px; font-weight: 500; cursor: pointer; margin-bottom: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 10px; }
-        .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
-        .nav-item.active { background: rgba(96, 165, 250, 0.1); color: var(--accent); border: 1px solid rgba(96, 165, 250, 0.2); }
-        
-        /* Ana İçerik */
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: radial-gradient(circle at 100% 0%, #111 0%, #050505 50%); }
-        .topbar { height: 80px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; backdrop-filter: blur(10px); }
-        .breadcrumbs { font-size: 14px; color: var(--text-dim); font-weight: 500; }
-        .breadcrumbs span { color: var(--text); }
-        
-        .topbar-actions { display: flex; align-items: center; gap: 16px; }
-        .search-box input { padding: 12px 20px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 14px; width: 250px; outline: none; transition: all 0.3s; }
-        .search-box input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(96, 165, 250, 0.1); }
-        .btn-logout { padding: 12px 20px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s; }
-        .btn-logout:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+        body { background: #0b0f19; color: #fff; display: flex; flex-direction: column; min-height: 100vh; }
 
-        .content { padding: 40px; overflow-y: auto; flex: 1; }
+        /* YATAY MENÜ (Üst Bar) */
+        .navbar { background: #111827; border-bottom: 1px solid #1f2937; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; height: 70px; position: sticky; top: 0; z-index: 100; }
+        .nav-brand { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 1px; }
+        .nav-brand .brand-icon { background: #3b82f6; color: #fff; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 16px; }
         
-        /* Form Kartı */
-        .form-card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .form-card h3 { margin-bottom: 20px; font-size: 18px; font-weight: 600; color: #fff; }
-        .form-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
-        .form-row > * { flex: 1; min-width: 200px; }
-        input, select { width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: var(--text); border-radius: 10px; font-size: 14px; outline: none; transition: border 0.2s; }
-        input:focus, select:focus { border-color: var(--accent); }
-        select option { background: var(--panel); }
+        .nav-links { display: flex; gap: 8px; }
+        .nav-link { padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; color: #9ca3af; text-decoration: none; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+        .nav-link:hover, .nav-link.active { background: #1f2937; color: #fff; }
+        .nav-link.active { color: #3b82f6; }
         
-        button.btn-primary { padding: 14px 24px; background: var(--accent); color: #000; border: none; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; width: 100%; transition: all 0.2s; }
-        button.btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 5px 15px rgba(96,165,250,0.3); }
+        .nav-actions { display: flex; align-items: center; gap: 16px; }
+        .btn-logout { padding: 10px 18px; border-radius: 8px; background: #ef4444; color: #fff; text-decoration: none; font-size: 14px; font-weight: 600; transition: 0.2s; }
+        .btn-logout:hover { background: #dc2626; }
 
-        /* Tablo */
-        .table-container { border: 1px solid var(--border); border-radius: 16px; background: var(--panel); overflow-x: auto; }
+        /* ANA İÇERİK ALANI */
+        .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; width: 100%; display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+        
+        /* SOL TARAF: KEY OLUŞTURMA FORMU */
+        .sidebar-form { flex: 1; min-width: 300px; max-width: 400px; background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 30px; position: sticky; top: 100px; }
+        .sidebar-form h3 { font-size: 18px; margin-bottom: 20px; color: #f3f4f6; border-bottom: 1px solid #1f2937; padding-bottom: 12px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 12px; color: #9ca3af; margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-control { width: 100%; padding: 14px; background: #1f2937; border: 1px solid #374151; border-radius: 10px; color: #fff; font-size: 14px; outline: none; transition: 0.2s; }
+        .form-control:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+        .btn-submit { width: 100%; padding: 14px; background: #3b82f6; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        .btn-submit:hover { background: #2563eb; }
+
+        /* SAĞ TARAF: LİSTE VE TABLO */
+        .main-list { flex: 2; min-width: 600px; background: #111827; border: 1px solid #1f2937; border-radius: 16px; overflow: hidden; }
+        .list-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #1f2937; background: #0f172a; }
+        .list-header h3 { font-size: 18px; color: #f3f4f6; }
+        .search-input { padding: 10px 16px; border-radius: 8px; border: 1px solid #374151; background: #1f2937; color: #fff; font-size: 14px; width: 250px; outline: none; transition: 0.2s; }
+        .search-input:focus { border-color: #3b82f6; }
+
+        .table-responsive { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { text-align: left; padding: 18px 24px; border-bottom: 1px solid var(--border); color: var(--text-dim); font-weight: 500; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;}
-        td { padding: 18px 24px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-        tr:last-child td { border-bottom: none; }
+        th { text-align: left; padding: 16px 24px; background: #0b0f19; color: #9ca3af; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #1f2937; font-weight: 600; }
+        td { padding: 16px 24px; border-bottom: 1px solid #1f2937; vertical-align: middle; }
         tr:hover td { background: rgba(255,255,255,0.02); }
-        
-        /* Durum Etiketleri (Badges) */
-        .badge { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; display: inline-block; }
-        .badge-success { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
-        .badge-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
-        .badge-muted { background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid var(--border); }
+        tr:last-child td { border-bottom: none; }
 
-        /* Aksiyon Butonları */
-        .action-btns { display: flex; gap: 8px; flex-wrap: wrap; }
-        .action-btns form { display: inline; }
-        .action-btns button { padding: 8px 12px; font-size: 12px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: var(--text-dim); cursor: pointer; transition: all 0.2s; font-weight: 500;}
-        .action-btns button:hover { background: rgba(255,255,255,0.08); color: var(--text); }
-        .action-btns .btn-danger { color: #ff6b6b; border-color: rgba(239,68,68,0.2); }
-        .action-btns .btn-danger:hover { background: rgba(239,68,68,0.1); }
-        .action-btns .btn-warning { color: var(--warning); border-color: rgba(245,158,11,0.2); }
-        .action-btns .btn-warning:hover { background: rgba(245,158,11,0.1); }
-        .action-btns .btn-success { color: var(--success); border-color: rgba(16,185,129,0.2); }
-        .action-btns .btn-success:hover { background: rgba(16,185,129,0.1); }
-        
-        .key-code { font-family: monospace; font-weight: 600; color: var(--accent); font-size: 15px; }
-        .key-note { color: var(--text-dim); font-size: 12px; margin-top: 6px; }
-        
-        /* Modal */
-        #settingsModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--panel); padding: 40px; border-radius: 20px; width: 400px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
-        .modal-content h3 { font-size: 20px; margin-bottom: 16px; }
-        .modal-content p { font-size: 14px; color: var(--text-dim); margin-bottom: 24px; }
+        .key-text { font-family: monospace; font-size: 14px; font-weight: 600; color: #e5e7eb; }
+        .key-note { font-size: 12px; color: #6b7280; margin-top: 4px; }
+
+        /* DURUM ETİKETLERİ */
+        .status-badge { padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-block; }
+        .status-active { background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+        .status-banned { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+        .status-expired { background: rgba(107, 114, 128, 0.1); color: #9ca3af; border: 1px solid rgba(107,114,128,0.2); }
+
+        /* AKSİYON BUTONLARI (GRID YAPIDA) */
+        .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .btn-action { padding: 6px 10px; font-size: 11px; font-weight: 600; border-radius: 6px; border: 1px solid #374151; background: transparent; color: #9ca3af; cursor: pointer; transition: 0.2s; text-align: center; }
+        .btn-action:hover { background: #374151; color: #fff; }
+        .btn-action.red:hover { background: #ef4444; color: #fff; border-color: #ef4444; }
+        .btn-action.green:hover { background: #10b981; color: #fff; border-color: #10b981; }
+        .btn-action.yellow:hover { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+
+        /* MODAL */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: #111827; width: 100%; max-width: 450px; border-radius: 16px; border: 1px solid #1f2937; padding: 30px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 20px; color: #fff; }
+        .close-btn { background: transparent; border: none; color: #9ca3af; font-size: 24px; cursor: pointer; }
+        .modal-body p { color: #9ca3af; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+        .danger-btn { width: 100%; padding: 14px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .danger-btn:hover { background: #ef4444; color: #fff; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="logo-area">
-            <div class="logo-icon">D</div>
-            <div class="logo-text">DARK IOS</div>
+    <!-- YATAY ÜST MENÜ -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="brand-icon">D</div>
+            DARK IOS
         </div>
-        <a href="#" class="nav-item active">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
-            API Keys
-        </a>
-        <a href="#" class="nav-item" onclick="document.getElementById('settingsModal').style.display='flex'">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-            Settings
-        </a>
-    </div>
+        <div class="nav-links">
+            <a href="#" class="nav-link active">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                API Keys
+            </a>
+            <a href="#" class="nav-link">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                API Settings
+            </a>
+            <a href="#" class="nav-link" onclick="document.getElementById('settingsModal').style.display='flex'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                Settings
+            </a>
+        </div>
+        <div class="nav-actions">
+            <a href="admin.php?action=logout" class="btn-logout">Logout</a>
+        </div>
+    </nav>
 
-    <div class="main-content">
-        <div class="topbar">
-            <div class="breadcrumbs">Dashboard / <span>API Keys</span></div>
-            <div class="topbar-actions">
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Search keys or notes..." onkeyup="filterKeys()">
+    <!-- ANA İÇERİK: SOL FORM, SAĞ TABLO -->
+    <div class="container">
+        
+        <!-- SOL: KEY OLUŞTURMA FORMU -->
+        <div class="sidebar-form">
+            <h3>Create New Key</h3>
+            <form method="POST">
+                <div class="form-group">
+                    <label>Note (Username)</label>
+                    <input type="text" name="note" class="form-control" placeholder="e.g. user123">
                 </div>
-                <a href="admin.php?action=logout" class="btn-logout">Logout</a>
-            </div>
+                <div class="form-group">
+                    <label>Max Devices</label>
+                    <input type="number" name="max_devices" value="1" min="1" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Duration</label>
+                    <select name="duration_type" class="form-control">
+                        <option value="1D">1 Day</option>
+                        <option value="7D">7 Days</option>
+                        <option value="30D">30 Days</option>
+                        <option value="LIFETIME">Lifetime</option>
+                        <option disabled>──────────</option>
+                        <option value="TEST_1D">1 Day (Tester)</option>
+                        <option value="TEST_7D">7 Days (Tester)</option>
+                        <option value="TEST_30D">30 Days (Tester)</option>
+                        <option value="TEST_LIFETIME">Lifetime (Tester)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Custom Key (Optional)</label>
+                    <input type="text" name="custom_key" class="form-control" placeholder="Leave empty for auto-gen">
+                </div>
+                <button type="submit" name="create_key" class="btn-submit">+ Generate Key</button>
+            </form>
         </div>
 
-        <div class="content">
-            <!-- Yeni Key Oluşturma -->
-            <div class="form-card">
-                <h3>Create New Key</h3>
-                <form method="POST">
-                    <div class="form-row">
-                        <input type="text" name="note" placeholder="Note (username, etc.)">
-                        <input type="number" name="max_devices" value="1" min="1" placeholder="Max Devices">
-                    </div>
-                    <div class="form-row">
-                        <select name="duration_type">
-                            <option value="1D">1 Day</option>
-                            <option value="7D">7 Days</option>
-                            <option value="30D">30 Days</option>
-                            <option value="LIFETIME">Lifetime</option>
-                            <option disabled>──────────</option>
-                            <option value="TEST_1D">1 Day (Tester)</option>
-                            <option value="TEST_7D">7 Days (Tester)</option>
-                            <option value="TEST_30D">30 Days (Tester)</option>
-                            <option value="TEST_LIFETIME">Lifetime (Tester)</option>
-                        </select>
-                        <input type="text" name="custom_key" placeholder="Custom Key (optional)">
-                    </div>
-                    <button type="submit" name="create_key" class="btn-primary">+ Generate Key</button>
-                </form>
+        <!-- SAĞ: TABLO VE ARAMA -->
+        <div class="main-list">
+            <div class="list-header">
+                <h3>Existing Keys</h3>
+                <input type="text" id="searchInput" placeholder="Search keys..." class="search-input" onkeyup="filterKeys()">
             </div>
-
-            <!-- Key Listesi -->
-            <div class="table-container">
-                <?php if (count($keys_data) === 0): ?>
-                    <div style="text-align:center; padding:60px; color:var(--text-dim); font-size: 15px;">No keys generated yet. Create your first key above.</div>
-                <?php else: ?>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>License Key</th>
-                                <th>Status</th>
-                                <th>Duration</th>
-                                <th>Devices</th>
-                                <th>Actions</th>
+            
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Key</th>
+                            <th>Status</th>
+                            <th>Expiry</th>
+                            <th>Devices</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="keysContainer">
+                        <?php foreach($keys_data as $k => $v): ?>
+                            <?php $is_banned = ($v['status'] == 'banned'); ?>
+                            <tr class="key-row" data-key="<?= htmlspecialchars(strtolower($k)) ?>" data-note="<?= htmlspecialchars(strtolower($v['note'])) ?>">
+                                <td>
+                                    <div class="key-text"><?= htmlspecialchars($k) ?></div>
+                                    <?php if(!empty($v['note'])): ?>
+                                        <div class="key-note">Note: <?= htmlspecialchars($v['note']) ?></div>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?= key_status_badge($v) ?></td>
+                                <td><?= key_time_left($v) ?></td>
+                                <td><span style="color:#fff; font-weight:600;"><?= count($v['devices']) ?></span> / <?= $v['max_devices'] ?></td>
+                                <td>
+                                    <div class="action-grid">
+                                        <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="reset_hwid"><button type="submit" name="action_key" class="btn-action yellow" title="Reset Devices">Reset</button></form>
+                                        <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="block"><button type="submit" name="action_key" class="btn-action red"><?= $is_banned ? 'Unban' : 'Ban' ?></button></form>
+                                        <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="add_time"><button type="submit" name="action_key" class="btn-action green">+1D</button></form>
+                                        <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="limit_inc"><button type="submit" name="action_key" class="btn-action">+Dev</button></form>
+                                        <form method="POST" onsubmit="return confirm('Delete this key?');"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="delete"><button type="submit" name="action_key" class="btn-action red">Delete</button></form>
+                                    </div>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody id="keysContainer">
-                            <?php foreach($keys_data as $k => $v): ?>
-                                <?php $is_banned = ($v['status'] == 'banned'); ?>
-                                <tr class="key-row" data-key="<?= htmlspecialchars(strtolower($k)) ?>" data-note="<?= htmlspecialchars(strtolower($v['note'])) ?>">
-                                    <td>
-                                        <div class="key-code"><?= htmlspecialchars($k) ?></div>
-                                        <?php if(!empty($v['note'])): ?>
-                                            <div class="key-note"><?= htmlspecialchars($v['note']) ?></div>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td><?= key_status_badge($v) ?></td>
-                                    <td><?= key_time_left($v) ?></td>
-                                    <td><span style="font-weight:600; color:#fff;"><?= count($v['devices']) ?></span> / <?= $v['max_devices'] ?></td>
-                                    <td>
-                                        <div class="action-btns">
-                                            <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="reset_hwid"><button type="submit" name="action_key" class="btn-warning">Reset HWID</button></form>
-                                            <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="block"><button type="submit" name="action_key" class="btn-danger"><?= $is_banned ? 'Unban' : 'Ban' ?></button></form>
-                                            <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="add_time"><button type="submit" name="action_key" class="btn-success">+1 Day</button></form>
-                                            <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="limit_inc"><button type="submit" name="action_key" class="btn-warning">+Dev</button></form>
-                                            <form method="POST" onsubmit="return confirm('Are you sure you want to delete this key?');"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="delete"><button type="submit" name="action_key" class="btn-danger">Delete</button></form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                    <div id="noResults" style="display:none; text-align:center; padding:40px; color:var(--text-dim); font-size: 15px;">No keys found matching your search.</div>
-                <?php endif; ?>
+                        <?php endforeach; ?>
+                        <?php if(count($keys_data) === 0): ?>
+                            <tr><td colspan="5" style="text-align:center; padding: 40px; color:#6b7280;">No keys found. Create one on the left.</td></tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+                <div id="noResults" style="display:none; text-align:center; padding:40px; color:#6b7280; font-size: 14px;">No keys found matching your search.</div>
             </div>
         </div>
     </div>
 
-    <!-- Settings Modal -->
-    <div id="settingsModal">
+    <!-- AYARLAR (MODAL) -->
+    <div id="settingsModal" class="modal">
         <div class="modal-content">
-            <h3>Settings</h3>
-            <p>Manage your application settings and data here.</p>
-            
-            <div style="border-top:1px solid var(--border); padding-top:24px;">
-                <h4 style="margin-bottom:12px; font-size:14px; color:var(--danger);">Danger Zone</h4>
-                <p style="margin-bottom:16px;">This will permanently delete all keys and reset the system.</p>
-                <form method="POST" onsubmit="return confirm('Are you absolutely sure? This will delete ALL keys!');">
-                    <button type="submit" name="delete_all" style="background:rgba(239, 68, 68, 0.1); color:var(--danger); border:1px solid rgba(239, 68, 68, 0.2); padding:12px 20px; border-radius:10px; font-weight:600; cursor:pointer; width:100%; transition:all 0.2s;">Reset All Keys</button>
-                </form>
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button class="close-btn" onclick="document.getElementById('settingsModal').style.display='none'">&times;</button>
             </div>
-
-            <div style="margin-top:24px; text-align:right;">
-                <button type="button" onclick="document.getElementById('settingsModal').style.display='none'" style="background:rgba(255,255,255,0.05); border:1px solid var(--border); color:#fff; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:500;">Close</button>
+            <div class="modal-body">
+                <p>Manage your application settings and data here.</p>
+                
+                <div style="border-top:1px solid #1f2937; padding-top:20px; margin-top:20px;">
+                    <h4 style="color:#ef4444; font-size:14px; margin-bottom:12px;">Danger Zone</h4>
+                    <p style="font-size:13px; margin-bottom:16px;">This action will permanently delete all keys and reset the database.</p>
+                    <form method="POST" onsubmit="return confirm('Are you sure you want to delete ALL keys?');">
+                        <button type="submit" name="delete_all" class="danger-btn">Reset All Keys</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
