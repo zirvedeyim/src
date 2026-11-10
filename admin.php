@@ -102,6 +102,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: admin.php?page=bulk"); exit;
     }
 
+    // KEY DÜZENLEME (EDIT) İŞLEMİ
+    if (isset($_POST['edit_key_name'])) {
+        $old_key = $_POST['old_key'];
+        $new_key = trim($_POST['new_key']);
+        
+        if (!empty($new_key) && $old_key !== $new_key && isset($keys_data[$old_key])) {
+            // Yeni isim zaten var mı kontrol et
+            if (!isset($keys_data[$new_key])) {
+                // Keyin tüm verilerini kopyala, yeni isimle kaydet ve eskisini sil
+                $keys_data[$new_key] = $keys_data[$old_key];
+                unset($keys_data[$old_key]);
+                
+                file_put_contents($json_file, json_encode($keys_data, JSON_PRETTY_PRINT));
+                file_put_contents($backup_file, json_encode($keys_data, JSON_PRETTY_PRINT));
+            }
+        }
+        header("Location: admin.php"); exit;
+    }
+
     if (isset($_POST['action_key'])) {
         $k = $_POST['key_id'];
         $act = $_POST['sub_action'];
@@ -174,7 +193,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
                 </div>
                 <div class="input-group">
                     <label>Password</label>
-                    <input type="password" name="password" placeholder="Enter password" required>
+                    <input type="text" name="password" placeholder="Enter password" required>
                 </div>
                 <button type="submit" name="login" class="btn-submit">Sign In</button>
             </form>
@@ -194,17 +213,6 @@ function key_status_badge($v) {
     if ($v['status'] == 'global_banned') return '<span class="badge badge-orange">Stopped</span>';
     if ($v['expire'] > 0 && $v['expire'] < time()) return '<span class="badge badge-gray">Expired</span>';
     return '<span class="badge badge-green">Active</span>';
-}
-
-function key_time_left($v) {
-    if ($v['expire'] == 0) return '<span style="color:#8b5cf6; font-weight:700;">Lifetime</span>';
-    $diff = $v['expire'] - time();
-    if ($diff <= 0) return '<span style="color:#ef4444; font-weight:700;">Expired</span>';
-    
-    if ($diff < 86400) {
-        return '<span style="color:#f59e0b; font-weight:700;">' . ceil($diff / 3600) . ' hours</span>';
-    }
-    return '<span style="color:#64748b; font-weight:700;">' . ceil($diff / 86400) . ' days</span>';
 }
 ?>
 
@@ -226,8 +234,8 @@ function key_time_left($v) {
 
         /* SIDEBAR */
         .sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .logo-area { padding: 24px; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; border-bottom: 1px solid var(--border); }
-        .logo-icon { background: var(--primary); color: #fff; width: 32px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center; overflow: hidden;}
+        .logo-area { padding: 24px; display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; border-bottom: 1px solid var(--border); }
+        .logo-icon { background: var(--primary); color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; border: 2px solid #e2e8f0;}
         .logo-icon img { width: 100%; height: 100%; object-fit: cover; }
         
         .nav-section { padding: 20px 16px; flex: 1; overflow-y: auto;}
@@ -237,26 +245,26 @@ function key_time_left($v) {
         .nav-item svg { width: 18px; height: 18px; }
 
         .sidebar-bottom { padding: 20px; border-top: 1px solid var(--border); }
-        .user-profile { display: flex; align-items: center; gap: 12px; margin-top: 15px; cursor: pointer; padding: 8px; border-radius: 8px; transition: 0.2s;}
+        .user-profile { display: flex; align-items: center; gap: 12px; margin-top: 15px; cursor: pointer; padding: 8px; border-radius: 8px; transition: 0.2s; background: #f8fafc; border: 1px solid var(--border);}
         .user-profile:hover { background: #f1f5f9; }
-        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; justify-content: center; align-items: center; font-weight: 700; overflow: hidden; position: relative;}
+        .user-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; justify-content: center; align-items: center; font-weight: 700; overflow: hidden; position: relative; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
         .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .user-avatar .edit-icon { position: absolute; bottom: 0; right: 0; background: #fff; border-radius: 50%; width: 14px; height: 14px; display: flex; justify-content: center; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.2);}
 
         /* MAIN CONTENT */
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
-        .topbar { height: 72px; background: #fff; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; }
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; position: relative; }
+        #dynamic-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 0; opacity: 0.15; pointer-events: none; }
+        
+        .topbar { height: 72px; background: #fff; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; position: relative; z-index: 1;}
         .breadcrumb { font-size: 14px; color: var(--text-muted); font-weight: 600; }
         .breadcrumb span { color: var(--text); }
         
-        .content-area { padding: 30px; max-width: 1200px; margin: 0 auto; width: 100%; display: none; }
+        .content-area { padding: 30px; max-width: 1200px; margin: 0 auto; width: 100%; display: none; position: relative; z-index: 1;}
         .content-area.active { display: block; animation: fadeIn 0.3s ease-out; }
 
         .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .card-title { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 15px; }
         
-        /* Stats - No Background, No Emoji */
         .stats-text { font-size: 14px; font-weight: 600; color: var(--primary); display: flex; gap: 15px;}
         
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 16px; }
@@ -281,7 +289,10 @@ function key_time_left($v) {
         tr:last-child td { border-bottom: none; }
         tr:hover td { background: #f8fafc; }
 
-        .key-text { font-family: monospace; font-weight: 700; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 13px; border: 1px solid #e2e8f0; }
+        .key-text { font-family: monospace; font-weight: 700; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 13px; border: 1px solid #e2e8f0; display: inline-block; margin-bottom: 4px;}
+        .icon-btn { background: none; border: none; cursor: pointer; padding: 4px; border-radius: 4px; color: var(--text-muted); transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+        .icon-btn:hover { background: #e2e8f0; color: var(--primary); }
+        
         .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
         .badge-green { background: #dcfce7; color: #166534; }
         .badge-red { background: #fee2e2; color: #991b1b; }
@@ -321,8 +332,20 @@ function key_time_left($v) {
         .bulk-result-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 20px; position: relative;}
         .bulk-textarea { width: 100%; height: 300px; padding: 15px; font-family: monospace; font-size: 14px; font-weight: 600; border: 1px solid var(--border); border-radius: 8px; resize: vertical; outline: none; background: #fff; color: var(--text); line-height: 1.5;}
 
-        /* SEARCH BAR */
         .search-bar { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; width: 250px; font-weight: 600;}
+
+        /* MODAL */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: #fff; padding: 30px; border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-title { font-size: 18px; font-weight: 700; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); }
+
+        /* PROFILE MODAL */
+        .profile-modal-body { display: flex; flex-direction: column; gap: 15px; }
+        .profile-pic-large { width: 100px; height: 100px; border-radius: 50%; background: var(--primary); margin: 0 auto 10px auto; display: flex; justify-content: center; align-items: center; font-size: 36px; color: white; overflow: hidden; cursor: pointer; position: relative;}
+        .profile-pic-large img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-pic-large:hover::after { content: 'Upload'; position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.6); color: #fff; font-size: 12px; text-align: center; padding: 4px 0; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -367,26 +390,22 @@ function key_time_left($v) {
         <div class="sidebar-bottom">
             <a href="admin.php?action=logout" class="btn btn-outline" style="width:100%; justify-content:center;">Logout</a>
             
-            <!-- PROFIL TIKLAMA VE RESIM EKLEME -->
-            <div class="user-profile" onclick="document.getElementById('avatarInput').click()">
+            <!-- PROFIL TIKLAMA -->
+            <div class="user-profile" onclick="openProfileModal()">
                 <div class="user-avatar" id="profileAvatar">
                     <span id="profileText">O</span>
                     <img id="profileImg" src="" style="display:none;">
-                    <div class="edit-icon">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                    </div>
                 </div>
                 <div>
-                    <div style="font-size:14px; font-weight:700;">OWNER</div>
+                    <div style="font-size:14px; font-weight:700;" id="displayNickname">OWNER</div>
                     <div style="font-size:12px; color:var(--text-muted); font-weight:600;">Manager</div>
                 </div>
             </div>
-            <!-- GIZLI DOSYA SECME INPUTU -->
-            <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="uploadAvatar(this)">
         </div>
     </aside>
 
     <main class="main-content">
+        <div id="dynamic-bg"></div>
         <header class="topbar">
             <div class="breadcrumb">Settings / <span>API Key & SDKs</span></div>
         </header>
@@ -452,7 +471,7 @@ function key_time_left($v) {
                             <tr>
                                 <th>License Key</th>
                                 <th>Status</th>
-                                <th>Duration</th>
+                                <th>Expires In</th>
                                 <th>Devices</th>
                                 <th>Actions</th>
                             </tr>
@@ -462,11 +481,26 @@ function key_time_left($v) {
                                 <?php if($v['status'] == 'banned') continue; ?>
                                 <tr class="key-row" data-key="<?= htmlspecialchars(strtolower($k)) ?>" data-note="<?= htmlspecialchars(strtolower($v['note'])) ?>">
                                     <td>
-                                        <div class="key-text"><?= htmlspecialchars($k) ?></div>
+                                        <div style="display:flex; align-items:center; gap:5px;">
+                                            <div class="key-text"><?= htmlspecialchars($k) ?></div>
+                                            <!-- KOPYALA BUTONU -->
+                                            <button type="button" class="icon-btn" onclick="copyToClipboard('<?= htmlspecialchars($k) ?>')" title="Copy Key">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                            </button>
+                                            <!-- DÜZENLE BUTONU (KALEM) -->
+                                            <button type="button" class="icon-btn" onclick="openEditModal('<?= htmlspecialchars($k) ?>')" title="Edit Key">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                            </button>
+                                        </div>
                                         <?php if(!empty($v['note'])): ?><div style="font-size:12px; color:var(--text-muted); margin-top:4px; font-weight:600;"><?= htmlspecialchars($v['note']) ?></div><?php endif; ?>
                                     </td>
                                     <td><?= key_status_badge($v) ?></td>
-                                    <td><?= key_time_left($v) ?></td>
+                                    <td>
+                                        <!-- CANLI SAYAC -->
+                                        <span class="countdown" data-expire="<?= $v['expire'] ?>" style="font-weight:700; color:<?= ($v['expire'] > 0 && $v['expire'] < time()) ? '#ef4444' : '#f59e0b' ?>;">
+                                            <?= $v['expire'] == 0 ? 'Lifetime' : 'Loading...' ?>
+                                        </span>
+                                    </td>
                                     <td><span style="font-weight:700;"><?= count($v['devices']) ?></span> / <?= $v['max_devices'] ?></td>
                                     <td>
                                         <div class="action-group">
@@ -541,7 +575,11 @@ function key_time_left($v) {
                                 <tr class="banned-row" data-key="<?= htmlspecialchars(strtolower($k)) ?>">
                                     <td><div class="key-text"><?= htmlspecialchars($k) ?></div></td>
                                     <td><?= key_status_badge($v) ?></td>
-                                    <td><?= key_time_left($v) ?></td>
+                                    <td>
+                                        <span class="countdown" data-expire="<?= $v['expire'] ?>" style="font-weight:700; color:<?= ($v['expire'] > 0 && $v['expire'] < time()) ? '#ef4444' : '#f59e0b' ?>;">
+                                            <?= $v['expire'] == 0 ? 'Lifetime' : 'Loading...' ?>
+                                        </span>
+                                    </td>
                                     <td>
                                         <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="block"><button type="submit" name="action_key" class="action-btn" style="color:var(--success); border-color:var(--success);">Unban</button></form>
                                         <form method="POST" onsubmit="return confirm('Delete permanently?');"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="delete"><button type="submit" name="action_key" class="action-btn red">Delete</button></form>
@@ -666,8 +704,14 @@ function key_time_left($v) {
                 <div class="card-header">
                     <div class="card-title">Settings</div>
                 </div>
-                <p style="color:var(--text-muted); margin-bottom:20px; font-size:14px; font-weight:600;">Manage your API settings.</p>
+                <p style="color:var(--text-muted); margin-bottom:20px; font-size:14px; font-weight:600;">Manage your API settings and background.</p>
                 
+                <div style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:16px;">
+                    <div style="font-weight:700; margin-bottom:4px;">Background Image</div>
+                    <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">Upload an image to change the dashboard background.</p>
+                    <input type="file" id="bgUpload" accept="image/*" class="form-control" onchange="uploadBackground(this)">
+                </div>
+
                 <div style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:16px;">
                     <div style="font-weight:700; margin-bottom:4px;">API Endpoint</div>
                     <div style="font-family:monospace; color:var(--primary); font-weight:600;">https://a-g9eo.onrender.com/api.php</div>
@@ -684,7 +728,54 @@ function key_time_left($v) {
 
     </main>
 
+    <!-- EDIT KEY MODAL -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Edit Key Name</div>
+                <button class="modal-close" onclick="closeModal('editModal')">&times;</button>
+            </div>
+            <form method="POST">
+                <input type="hidden" name="old_key" id="editOldKey">
+                <div class="form-group">
+                    <label>New Key Name</label>
+                    <input type="text" name="new_key" id="editNewKey" class="form-control" required>
+                </div>
+                <button type="submit" name="edit_key_name" class="btn btn-primary" style="width:100%;">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- PROFILE MODAL -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Owner Profile</div>
+                <button class="modal-close" onclick="closeModal('profileModal')">&times;</button>
+            </div>
+            <div class="profile-modal-body">
+                <div class="profile-pic-large" onclick="document.getElementById('avatarInput').click()">
+                    <span id="modalProfileText">O</span>
+                    <img id="modalProfileImg" src="" style="display:none;">
+                </div>
+                <div class="form-group">
+                    <label>Nickname</label>
+                    <input type="text" id="inputNickname" class="form-control" placeholder="Enter your nickname">
+                </div>
+                <div class="form-group">
+                    <label>Bio</label>
+                    <textarea id="inputBio" class="form-control" rows="3" placeholder="Write something about yourself..."></textarea>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="saveProfile()">Save Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GIZLI DOSYA SECME INPUTLARI -->
+    <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="uploadAvatar(this)">
+
     <script>
+        // --- TAB VE ARAMA FONKSİYONLARI ---
         function switchTab(tabId, element) {
             document.querySelectorAll('.content-area').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -724,58 +815,111 @@ function key_time_left($v) {
         function toggleDeviceList(headerElement) {
             var content = headerElement.nextElementSibling;
             var chevron = headerElement.querySelector('.chevron');
-            
             if (content.style.display === "block") {
-                content.style.display = "none";
-                chevron.style.transform = "rotate(0deg)";
+                content.style.display = "none"; chevron.style.transform = "rotate(0deg)";
             } else {
-                content.style.display = "block";
-                chevron.style.transform = "rotate(180deg)";
+                content.style.display = "block"; chevron.style.transform = "rotate(180deg)";
             }
         }
 
         function copyBulkKeys() {
             var copyText = document.getElementById("bulkTextArea");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999);
-            navigator.clipboard.writeText(copyText.value).then(function() {
-                alert("All keys copied to clipboard!");
+            copyText.select(); copyText.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(copyText.value).then(function() { alert("All keys copied!"); });
+        }
+
+        // --- KEY KOPYALAMA VE DÜZENLEME ---
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert("Key copied: " + text);
             });
         }
 
-        // PROFIL RESMI YUKLEME VE KIRPMA (CROP) MANTIGI
+        function openEditModal(keyName) {
+            document.getElementById('editOldKey').value = keyName;
+            document.getElementById('editNewKey').value = keyName;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // --- SAYAÇ MANTIĞI (Countdown) ---
+        function updateCountdowns() {
+            var countdowns = document.querySelectorAll('.countdown');
+            var now = Math.floor(Date.now() / 1000);
+
+            countdowns.forEach(function(el) {
+                var expire = parseInt(el.getAttribute('data-expire'));
+                if (expire === 0) {
+                    el.innerText = "Lifetime";
+                    el.style.color = "#8b5cf6";
+                    return;
+                }
+
+                var diff = expire - now;
+                if (diff <= 0) {
+                    el.innerText = "Expired";
+                    el.style.color = "#ef4444";
+                    return;
+                }
+
+                var days = Math.floor(diff / 86400);
+                var hours = Math.floor((diff % 86400) / 3600);
+                var minutes = Math.floor((diff % 3600) / 60);
+                var seconds = diff % 60;
+
+                var str = "";
+                if (days > 0) str += days + "d ";
+                if (hours > 0 || days > 0) str += hours + "h ";
+                str += minutes + "m " + seconds + "s";
+
+                el.innerText = str;
+            });
+        }
+        
+        // Her saniye sayacı güncelle
+        setInterval(updateCountdowns, 1000);
+        document.addEventListener("DOMContentLoaded", updateCountdowns);
+
+        // --- PROFIL VE ARKA PLAN MANTIĞI ---
+        function openProfileModal() {
+            document.getElementById('profileModal').style.display = 'flex';
+            document.getElementById('inputNickname').value = localStorage.getItem('ownerNickname') || 'OWNER';
+            document.getElementById('inputBio').value = localStorage.getItem('ownerBio') || '';
+        }
+
+        function saveProfile() {
+            var nick = document.getElementById('inputNickname').value;
+            var bio = document.getElementById('inputBio').value;
+            
+            localStorage.setItem('ownerNickname', nick);
+            localStorage.setItem('ownerBio', bio);
+            
+            document.getElementById('displayNickname').innerText = nick;
+            closeModal('profileModal');
+            alert("Profile saved!");
+        }
+
+        // Avatar Yükleme ve Kırpma
         function uploadAvatar(input) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
                 reader.onload = function(e) {
                     var img = new Image();
                     img.onload = function() {
-                        // Resmi kare olacak sekilde ortadan kirp
                         var canvas = document.createElement('canvas');
                         var size = Math.min(img.width, img.height);
-                        canvas.width = size;
-                        canvas.height = size;
+                        canvas.width = size; canvas.height = size;
                         var ctx = canvas.getContext('2d');
-                        
                         var startX = (img.width - size) / 2;
                         var startY = (img.height - size) / 2;
-                        
                         ctx.drawImage(img, startX, startY, size, size, 0, 0, size, size);
                         
                         var croppedImageData = canvas.toDataURL("image/jpeg");
-                        
-                        // Ekrana yansit
-                        document.getElementById('profileImg').src = croppedImageData;
-                        document.getElementById('profileImg').style.display = 'block';
-                        document.getElementById('profileText').style.display = 'none';
-                        
-                        // Sol ustteki logoya yansit
-                        document.getElementById('topLogoImg').src = croppedImageData;
-                        document.getElementById('topLogoImg').style.display = 'block';
-                        document.getElementById('topLogoText').style.display = 'none';
-                        
-                        // Tarayici hafizasina kaydet (Sayfa yenilenince kaybolmasin)
                         localStorage.setItem('ownerAvatar', croppedImageData);
+                        applyAvatar(croppedImageData);
                     };
                     img.src = e.target.result;
                 };
@@ -783,18 +927,49 @@ function key_time_left($v) {
             }
         }
 
-        // Sayfa yuklendiginde kayitli resim varsa goster
+        function applyAvatar(imgData) {
+            // Alt profil
+            document.getElementById('profileImg').src = imgData;
+            document.getElementById('profileImg').style.display = 'block';
+            document.getElementById('profileText').style.display = 'none';
+            // Modal içi
+            document.getElementById('modalProfileImg').src = imgData;
+            document.getElementById('modalProfileImg').style.display = 'block';
+            document.getElementById('modalProfileText').style.display = 'none';
+            // Sol üst logo
+            document.getElementById('topLogoImg').src = imgData;
+            document.getElementById('topLogoImg').style.display = 'block';
+            document.getElementById('topLogoText').style.display = 'none';
+        }
+
+        // Arka Plan Yükleme (Kırpma yok, direkt kaplama)
+        function uploadBackground(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var bgData = e.target.result;
+                    localStorage.setItem('dashboardBg', bgData);
+                    applyBackground(bgData);
+                    alert("Background updated!");
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function applyBackground(bgData) {
+            document.getElementById('dynamic-bg').style.backgroundImage = "url('" + bgData + "')";
+        }
+
+        // Sayfa yüklendiğinde hafızadaki ayarları uygula
         window.onload = function() {
             var savedAvatar = localStorage.getItem('ownerAvatar');
-            if (savedAvatar) {
-                document.getElementById('profileImg').src = savedAvatar;
-                document.getElementById('profileImg').style.display = 'block';
-                document.getElementById('profileText').style.display = 'none';
-                
-                document.getElementById('topLogoImg').src = savedAvatar;
-                document.getElementById('topLogoImg').style.display = 'block';
-                document.getElementById('topLogoText').style.display = 'none';
-            }
+            if (savedAvatar) applyAvatar(savedAvatar);
+            
+            var savedBg = localStorage.getItem('dashboardBg');
+            if (savedBg) applyBackground(savedBg);
+
+            var savedNick = localStorage.getItem('ownerNickname');
+            if (savedNick) document.getElementById('displayNickname').innerText = savedNick;
         };
     </script>
 </body>
