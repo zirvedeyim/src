@@ -1,0 +1,44 @@
+name: Build Tweak
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Kodu Repodan Çek
+        uses: actions/checkout@v4
+
+      - name: Theos, SDK ve ldid Kur
+        run: |
+          git clone --recursive https://github.com/theos/theos.git $HOME/theos
+          cd $HOME/theos
+          curl -L -o sdks.tar.gz https://github.com/theos/sdks/archive/refs/heads/master.tar.gz
+          tar -xzf sdks.tar.gz
+          mv sdks-master sdks
+          rm sdks.tar.gz
+          
+          curl -L -o /tmp/ldid https://github.com/ProcursusTeam/ldid/releases/latest/download/ldid_macosx_arm64
+          chmod +x /tmp/ldid
+          sudo mv /tmp/ldid /usr/local/bin/ldid
+          
+          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+          echo "$HOME/theos/bin" >> $GITHUB_PATH
+
+      - name: Projeyi Derle
+        run: |
+          make clean
+          make package FINALPACKAGE=1
+
+      - name: Derlenen Dosyaları Yükle
+        uses: actions/upload-artifact@v4
+        with:
+          name: derlenmis-dylib
+          path: |
+            .theos/obj/**/*.dylib
+            *.dylib
+          if-no-files-found: warn
