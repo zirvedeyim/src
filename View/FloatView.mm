@@ -25,18 +25,7 @@
 }
 
 - (instancetype)initWithFrame:(CGRect)frame :(ModuleControl*)control {
-
-extern bool PlayerzSDK();
-extern bool ComponantSDK();
-extern bool Player1SK();
-extern bool Velocr();
-   
-
-if (!PlayerzSDK()) {
-
-    return 0;
-}
-    self.moduleControl = control;
+self.moduleControl = control;
     hasOpenedMenuInThisSession = NO; 
 
     if (self = [super initWithFrame:frame]) {
