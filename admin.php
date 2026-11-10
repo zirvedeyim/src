@@ -22,15 +22,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['toggle_global_stop'])) {
         $global_stop = !$global_stop;
         file_put_contents($config_file, json_encode(["global_stop" => $global_stop]));
-        
         if ($global_stop) {
-            foreach ($keys_data as $k => $v) {
-                if ($v['status'] !== 'banned') { $keys_data[$k]['status'] = 'global_banned'; }
-            }
+            foreach ($keys_data as $k => $v) { if ($v['status'] !== 'banned') { $keys_data[$k]['status'] = 'global_banned'; } }
         } else {
-            foreach ($keys_data as $k => $v) {
-                if ($v['status'] === 'global_banned') { $keys_data[$k]['status'] = 'active'; }
-            }
+            foreach ($keys_data as $k => $v) { if ($v['status'] === 'global_banned') { $keys_data[$k]['status'] = 'active'; } }
         }
         file_put_contents($json_file, json_encode($keys_data, JSON_PRETTY_PRINT));
         file_put_contents($backup_file, json_encode($keys_data, JSON_PRETTY_PRINT));
@@ -43,29 +38,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else { $login_error = "Invalid username or password!"; }
     }
 
+    // YARDIMCI FONKSİYON: Süre ve Prefix Belirleme
+    function getDurationAndPrefix($type) {
+        $now = time();
+        $prefix = "DARKIOS-";
+        $expire = $now + 86400;
+
+        if (strpos($type, 'TEST_') === 0) {
+            $prefix = "TESTERKEY-";
+            $type = str_replace('TEST_', '', $type);
+        }
+
+        if ($type == '1H') { $expire = $now + 3600; $prefix .= "1H-"; }
+        elseif ($type == '6H') { $expire = $now + (6 * 3600); $prefix .= "6H-"; }
+        elseif ($type == '12H') { $expire = $now + (12 * 3600); $prefix .= "12H-"; }
+        elseif ($type == '1D') { $expire = $now + 86400; $prefix .= "1D-"; }
+        elseif ($type == '7D') { $expire = $now + (7 * 86400); $prefix .= "7D-"; }
+        elseif ($type == '30D') { $expire = $now + (30 * 86400); $prefix .= "30D-"; }
+        elseif ($type == 'LIFETIME') { $expire = 0; $prefix .= "LIFETIME-"; }
+
+        return ["expire" => $expire, "prefix" => $prefix];
+    }
+
+    // TEKLİ KEY OLUŞTURMA
     if (isset($_POST['create_key'])) {
         $duration_type = $_POST['duration_type'];
         $note = htmlspecialchars($_POST['note']);
-        $max_devices = max(1, intval($_POST['max_devices'])); // MAX DEVICE AYARI
+        $custom_key = trim($_POST['custom_key']);
+        $max_devices = max(1, intval($_POST['max_devices']));
+        $durInfo = getDurationAndPrefix($duration_type);
 
-        $now = time();
-        $expire_time = $now + 86400;
-        $prefix = "DARKIOS-1D-";
-
-        if ($duration_type == '7D') { $expire_time = $now + (7 * 86400); $prefix = "DARKIOS-7D-"; }
-        elseif ($duration_type == '30D') { $expire_time = $now + (30 * 86400); $prefix = "DARKIOS-30D-"; }
-        elseif ($duration_type == 'LIFETIME') { $expire_time = 0; $prefix = "DARKIOS-LIFETIME-"; }
-
-        $random_part = strtoupper(substr(bin2hex(random_bytes(8)), 0, 15));
-        $key = $prefix . $random_part; // Otomatik oluşturma
+        $random_part = strtoupper(substr(bin2hex(random_bytes(6)), 0, 10));
+        $key = !empty($custom_key) ? $custom_key : $durInfo['prefix'] . $random_part;
         
         $keys_data[$key] = [
-            "note" => $note, "expire" => $expire_time, "max_devices" => $max_devices,
+            "note" => $note, "expire" => $durInfo['expire'], "max_devices" => $max_devices,
             "devices" => [], "status" => $global_stop ? "global_banned" : "active"
         ];
         file_put_contents($json_file, json_encode($keys_data, JSON_PRETTY_PRINT));
         file_put_contents($backup_file, json_encode($keys_data, JSON_PRETTY_PRINT));
         header("Location: admin.php"); exit;
+    }
+
+    // TOPLU KEY OLUŞTURMA
+    if (isset($_POST['bulk_create'])) {
+        $amount = max(1, intval($_POST['bulk_amount']));
+        $duration_type = $_POST['bulk_duration'];
+        $max_devices = max(1, intval($_POST['bulk_devices'])); // YENİ: Cihaz Sayısı Eklendi
+        $durInfo = getDurationAndPrefix($duration_type);
+        
+        $generated_keys = [];
+        for ($i = 0; $i < $amount; $i++) {
+            $random_part = strtoupper(substr(bin2hex(random_bytes(6)), 0, 10));
+            $key = $durInfo['prefix'] . $random_part;
+            
+            $keys_data[$key] = [
+                "note" => "Bulk Gen", "expire" => $durInfo['expire'], "max_devices" => $max_devices, // Cihaz sayısı atanıyor
+                "devices" => [], "status" => $global_stop ? "global_banned" : "active"
+            ];
+            $generated_keys[] = $key;
+        }
+        file_put_contents($json_file, json_encode($keys_data, JSON_PRETTY_PRINT));
+        file_put_contents($backup_file, json_encode($keys_data, JSON_PRETTY_PRINT));
+        
+        $_SESSION['bulk_generated'] = $generated_keys;
+        header("Location: admin.php?page=bulk"); exit;
     }
 
     if (isset($_POST['action_key'])) {
@@ -75,10 +112,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($act == 'delete') { unset($keys_data[$k]); }
             elseif ($act == 'block') { $keys_data[$k]['status'] = ($keys_data[$k]['status'] == 'banned') ? ($global_stop ? 'global_banned' : 'active') : 'banned'; }
             elseif ($act == 'reset_hwid') { $keys_data[$k]['devices'] = []; }
-            elseif ($act == 'add_time') { if ($keys_data[$k]['expire'] > 0) $keys_data[$k]['expire'] += 86400; }
-            elseif ($act == 'add_device') { // YENİ CİHAZ EKLEME
-                $add_amount = isset($_POST['device_amount']) ? intval($_POST['device_amount']) : 1;
-                if ($add_amount > 0) { $keys_data[$k]['max_devices'] += $add_amount; }
+            elseif ($act == 'add_time') { 
+                $add_time = intval($_POST['add_time_value']);
+                $time_unit = $_POST['add_time_unit'];
+                if ($add_time > 0) {
+                    $seconds = ($time_unit == 'days') ? $add_time * 86400 : $add_time * 3600;
+                    if ($keys_data[$k]['expire'] > 0) { $keys_data[$k]['expire'] += $seconds; }
+                }
+            }
+            elseif ($act == 'add_device') {
+                $add_amount = max(1, intval($_POST['device_amount']));
+                $keys_data[$k]['max_devices'] += $add_amount;
             }
             file_put_contents($json_file, json_encode($keys_data, JSON_PRETTY_PRINT));
             file_put_contents($backup_file, json_encode($keys_data, JSON_PRETTY_PRINT));
@@ -144,14 +188,9 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit;
 }
 
-// İSTATİSTİKLERİ HESAPLA
 $total_keys_count = count($keys_data);
 $total_online_devices = 0;
-foreach ($keys_data as $k => $v) {
-    if (isset($v['devices']) && is_array($v['devices'])) {
-        $total_online_devices += count($v['devices']);
-    }
-}
+foreach ($keys_data as $k => $v) { if (isset($v['devices']) && is_array($v['devices'])) { $total_online_devices += count($v['devices']); } }
 
 function key_status_badge($v) {
     if ($v['status'] == 'banned') return '<span class="badge badge-red">Manually Banned</span>';
@@ -164,6 +203,10 @@ function key_time_left($v) {
     if ($v['expire'] == 0) return '<span style="color:#8b5cf6; font-weight:600;">Lifetime</span>';
     $diff = $v['expire'] - time();
     if ($diff <= 0) return '<span style="color:#ef4444; font-weight:600;">Expired</span>';
+    
+    if ($diff < 86400) {
+        return '<span style="color:#f59e0b; font-weight:600;">' . ceil($diff / 3600) . ' hours</span>';
+    }
     return '<span style="color:#64748b; font-weight:500;">' . ceil($diff / 86400) . ' days</span>';
 }
 ?>
@@ -213,11 +256,10 @@ function key_time_left($v) {
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .card-title { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 15px; }
         
-        /* İSTATİSTİK BADGE */
         .stats-badge { background: #eef2ff; color: var(--primary); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #c7d2fe; display: flex; gap: 10px; align-items: center; }
         .stats-badge span { display: flex; align-items: center; gap: 4px; }
         
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 16px; }
         .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
         .form-control { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s; }
         .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
@@ -255,17 +297,16 @@ function key_time_left($v) {
         .action-btn.info { color: var(--primary); border-color: #c7d2fe; }
         .action-btn.info:hover { background: #e0e7ff; }
         
-        /* KÜÇÜK INPUT (Cihaz Ekleme İçin) */
         .inline-form { display: flex; gap: 4px; align-items: center; }
-        .inline-input { width: 60px; padding: 6px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; text-align: center; outline: none; }
-        .inline-input:focus { border-color: var(--primary); }
+        .inline-input { width: 50px; padding: 6px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; text-align: center; outline: none; }
+        .inline-select { padding: 6px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; }
 
         /* GLOBAL STOP KUTUSU */
         .stop-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
         .stop-title { font-size: 16px; font-weight: 600; color: var(--danger); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;}
         .stop-desc { font-size: 13px; color: #7f1d1d; }
 
-        /* CİHAZ LİSTESİ (INFO SEKMESİ) */
+        /* CİHAZ LİSTESİ */
         .device-key-block { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; background: #fff; }
         .device-key-header { padding: 16px 20px; background: #f8fafc; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; font-weight: 600; }
         .device-key-header:hover { background: #f1f5f9; }
@@ -279,6 +320,10 @@ function key_time_left($v) {
         .device-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
         .device-row span:first-child { color: var(--text-muted); }
         .device-row span:last-child { font-weight: 600; color: var(--text); }
+
+        /* BULK COPY ALANI */
+        .bulk-result-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 20px; position: relative;}
+        .bulk-textarea { width: 100%; height: 300px; padding: 15px; font-family: monospace; font-size: 14px; border: 1px solid var(--border); border-radius: 8px; resize: vertical; outline: none; background: #fff; color: var(--text); line-height: 1.5;}
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -294,19 +339,25 @@ function key_time_left($v) {
         
         <div class="nav-section">
             <div class="nav-title">Dashboard</div>
-            <a href="#" class="nav-item active" onclick="switchTab('keysTab', this)">
+            <a href="#" class="nav-item <?= (!isset($_GET['page']) || $_GET['page'] == 'all') ? 'active' : '' ?>" onclick="switchTab('keysTab', this)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                 All Keys
             </a>
-            <a href="#" class="nav-item" onclick="switchTab('bannedTab', this)">
+            <a href="#" class="nav-item <?= (isset($_GET['page']) && $_GET['page'] == 'banned') ? 'active' : '' ?>" onclick="switchTab('bannedTab', this)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
                 Banned Keys
             </a>
-            <a href="#" class="nav-item" onclick="switchTab('infoTab', this)">
+            <a href="#" class="nav-item <?= (isset($_GET['page']) && $_GET['page'] == 'info') ? 'active' : '' ?>" onclick="switchTab('infoTab', this)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                 Device Info
             </a>
-            <a href="#" class="nav-item" onclick="switchTab('settingsTab', this)">
+            
+            <div class="nav-title" style="margin-top:20px;">Tools</div>
+            <a href="#" class="nav-item <?= (isset($_GET['page']) && $_GET['page'] == 'bulk') ? 'active' : '' ?>" onclick="switchTab('bulkTab', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                TOP LU KEY
+            </a>
+            <a href="#" class="nav-item <?= (isset($_GET['page']) && $_GET['page'] == 'settings') ? 'active' : '' ?>" onclick="switchTab('settingsTab', this)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                 Settings
             </a>
@@ -331,7 +382,7 @@ function key_time_left($v) {
         </header>
 
         <!-- SEKME 1: TÜM KEYLER (ALL KEYS) -->
-        <div id="keysTab" class="content-area active">
+        <div id="keysTab" class="content-area <?= (!isset($_GET['page']) || $_GET['page'] == 'all') ? 'active' : '' ?>">
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">Create New API Key</div>
@@ -343,16 +394,30 @@ function key_time_left($v) {
                             <input type="text" name="note" class="form-control" placeholder="e.g. User123">
                         </div>
                         <div class="form-group">
-                            <label>Max Devices (Örn: 500)</label>
+                            <label>Özel Key (İsteğe Bağlı)</label>
+                            <input type="text" name="custom_key" class="form-control" placeholder="Örn: dark, 31...">
+                        </div>
+                        <div class="form-group">
+                            <label>Max Devices</label>
                             <input type="number" name="max_devices" value="1" min="1" class="form-control">
                         </div>
                         <div class="form-group">
                             <label>Duration</label>
                             <select name="duration_type" class="form-control">
+                                <option value="1H">1 Hour</option>
+                                <option value="6H">6 Hours</option>
+                                <option value="12H">12 Hours</option>
                                 <option value="1D">1 Day</option>
                                 <option value="7D">7 Days</option>
                                 <option value="30D">30 Days</option>
                                 <option value="LIFETIME">Lifetime</option>
+                                <option disabled>──────────</option>
+                                <option value="TEST_1H">1 Hour (Tester)</option>
+                                <option value="TEST_6H">6 Hours (Tester)</option>
+                                <option value="TEST_12H">12 Hours (Tester)</option>
+                                <option value="TEST_1D">1 Day (Tester)</option>
+                                <option value="TEST_7D">7 Days (Tester)</option>
+                                <option value="TEST_30D">30 Days (Tester)</option>
                             </select>
                         </div>
                     </div>
@@ -396,21 +461,28 @@ function key_time_left($v) {
                                     <td><span style="font-weight:600;"><?= count($v['devices']) ?></span> / <?= $v['max_devices'] ?></td>
                                     <td>
                                         <div class="action-group">
-                                            <!-- Cihaz Sıfırlama -->
                                             <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="reset_hwid"><button type="submit" name="action_key" class="action-btn" title="Tüm cihazları sıfırla">Reset HWID</button></form>
                                             
-                                            <!-- Banlama -->
                                             <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="block"><button type="submit" name="action_key" class="action-btn red">Ban</button></form>
                                             
-                                            <!-- Süre Ekleme -->
-                                            <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="add_time"><button type="submit" name="action_key" class="action-btn">+1D</button></form>
+                                            <!-- SÜRE EKLEME (Saat/Gün) -->
+                                            <form method="POST" class="inline-form">
+                                                <input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>">
+                                                <input type="hidden" name="sub_action" value="add_time">
+                                                <input type="number" name="add_time_value" class="inline-input" value="1" min="1" title="Miktar">
+                                                <select name="add_time_unit" class="inline-select">
+                                                    <option value="days">D</option>
+                                                    <option value="hours">H</option>
+                                                </select>
+                                                <button type="submit" name="action_key" class="action-btn success" style="color:var(--success); border-color:var(--success);">+Ekle</button>
+                                            </form>
 
-                                            <!-- Cihaz Ekleme (Yeni) -->
+                                            <!-- CİHAZ EKLEME -->
                                             <form method="POST" class="inline-form">
                                                 <input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>">
                                                 <input type="hidden" name="sub_action" value="add_device">
                                                 <input type="number" name="device_amount" class="inline-input" value="1" min="1" title="Eklenecek cihaz sayısı">
-                                                <button type="submit" name="action_key" class="action-btn info" title="Cihaz limiti ekle">+Add Dev</button>
+                                                <button type="submit" name="action_key" class="action-btn info" title="Cihaz limiti ekle">+Dev</button>
                                             </form>
                                         </div>
                                     </td>
@@ -424,7 +496,7 @@ function key_time_left($v) {
         </div>
 
         <!-- SEKME 2: BANNED KEYLER -->
-        <div id="bannedTab" class="content-area">
+        <div id="bannedTab" class="content-area <?= (isset($_GET['page']) && $_GET['page'] == 'banned') ? 'active' : '' ?>">
             <div class="stop-box">
                 <div>
                     <div class="stop-title">
@@ -475,8 +547,8 @@ function key_time_left($v) {
             </div>
         </div>
 
-        <!-- SEKME 3: CİHAZ BİLGİLERİ (INFO) - ACCORDION LİSTE -->
-        <div id="infoTab" class="content-area">
+        <!-- SEKME 3: CİHAZ BİLGİLERİ (INFO) -->
+        <div id="infoTab" class="content-area <?= (isset($_GET['page']) && $_GET['page'] == 'info') ? 'active' : '' ?>">
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">Devices (Grouped by Key)</div>
@@ -528,8 +600,61 @@ function key_time_left($v) {
             </div>
         </div>
 
-        <!-- SEKME 4: SETTINGS -->
-        <div id="settingsTab" class="content-area">
+        <!-- SEKME 4: TOP LU KEY (BULK GENERATOR) -->
+        <div id="bulkTab" class="content-area <?= (isset($_GET['page']) && $_GET['page'] == 'bulk') ? 'active' : '' ?>">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Toplu Key Oluşturucu (Bulk Generator)</div>
+                </div>
+                <form method="POST">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Kaç Key Oluşturulsun?</label>
+                            <input type="number" name="bulk_amount" class="form-control" value="10" min="1" max="1000">
+                        </div>
+                        <div class="form-group">
+                            <label>Süre</label>
+                            <select name="bulk_duration" class="form-control">
+                                <option value="1H">1 Hour</option>
+                                <option value="6H">6 Hours</option>
+                                <option value="12H">12 Hours</option>
+                                <option value="1D">1 Day</option>
+                                <option value="7D">7 Days</option>
+                                <option value="30D">30 Days</option>
+                                <option value="LIFETIME">Lifetime</option>
+                                <option disabled>──────────</option>
+                                <option value="TEST_1H">1 Hour (Tester)</option>
+                                <option value="TEST_1D">1 Day (Tester)</option>
+                                <option value="TEST_7D">7 Days (Tester)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Kaç Cihaz Girebilsin?</label>
+                            <input type="number" name="bulk_devices" class="form-control" value="1" min="1">
+                        </div>
+                    </div>
+                    <button type="submit" name="bulk_create" class="btn btn-primary">Toplu Key Üret</button>
+                </form>
+
+                <?php if (isset($_SESSION['bulk_generated']) && !empty($_SESSION['bulk_generated'])): ?>
+                    <div class="bulk-result-box">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h3 style="font-size:16px;">Oluşturulan Keyler (<?= count($_SESSION['bulk_generated']) ?> Adet)</h3>
+                            <button type="button" class="btn btn-outline" onclick="copyBulkKeys()">📋 Hepsini Kopyala</button>
+                        </div>
+                        <textarea id="bulkTextArea" class="bulk-textarea" readonly><?php 
+                            foreach($_SESSION['bulk_generated'] as $k) {
+                                echo $k . "\n";
+                            }
+                        ?></textarea>
+                    </div>
+                    <?php unset($_SESSION['bulk_generated']); // İşlem bitince session'ı temizle ?>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- SEKME 5: SETTINGS -->
+        <div id="settingsTab" class="content-area <?= (isset($_GET['page']) && $_GET['page'] == 'settings') ? 'active' : '' ?>">
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">Settings</div>
@@ -553,11 +678,47 @@ function key_time_left($v) {
     </main>
 
     <script>
+        // URL'deki sayfa parametresine göre sekmeyi ayarla
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const page = urlParams.get('page') || 'all';
+            
+            document.querySelectorAll('.content-area').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            if (page === 'banned') {
+                document.getElementById('bannedTab').classList.add('active');
+                document.querySelectorAll('.nav-item')[1].classList.add('active');
+            } else if (page === 'info') {
+                document.getElementById('infoTab').classList.add('active');
+                document.querySelectorAll('.nav-item')[2].classList.add('active');
+            } else if (page === 'bulk') {
+                document.getElementById('bulkTab').classList.add('active');
+                document.querySelectorAll('.nav-item')[3].classList.add('active');
+            } else if (page === 'settings') {
+                document.getElementById('settingsTab').classList.add('active');
+                document.querySelectorAll('.nav-item')[4].classList.add('active');
+            } else {
+                document.getElementById('keysTab').classList.add('active');
+                document.querySelectorAll('.nav-item')[0].classList.add('active');
+            }
+        });
+
         function switchTab(tabId, element) {
+            // Sadece görsel değişiklik yap (Sayfa yenilenmesini bekleme)
             document.querySelectorAll('.content-area').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             element.classList.add('active');
+            
+            // URL'yi güncelle (sayfa yenilenirse diye)
+            let pageName = 'all';
+            if(tabId === 'bannedTab') pageName = 'banned';
+            if(tabId === 'infoTab') pageName = 'info';
+            if(tabId === 'bulkTab') pageName = 'bulk';
+            if(tabId === 'settingsTab') pageName = 'settings';
+            
+            history.pushState(null, '', '?page=' + pageName);
         }
 
         function filterKeys() {
@@ -586,6 +747,17 @@ function key_time_left($v) {
                 content.style.display = "block";
                 chevron.style.transform = "rotate(180deg)";
             }
+        }
+
+        function copyBulkKeys() {
+            var copyText = document.getElementById("bulkTextArea");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); /* Mobil için */
+            navigator.clipboard.writeText(copyText.value).then(function() {
+                alert("Tüm keyler kopyalandı!");
+            }, function(err) {
+                alert("Kopyalama başarısız oldu: " + err);
+            });
         }
     </script>
 </body>
