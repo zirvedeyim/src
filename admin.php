@@ -220,6 +220,7 @@ function key_status_badge($v) {
     <title>Dashboard — DARK IOS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet"> <!-- Terminal Font -->
     <style>
         /* DEFAULT THEME VARIABLES */
         :root {
@@ -232,13 +233,15 @@ function key_status_badge($v) {
 
         /* SIDEBAR */
         .sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: background 0.3s, border-color 0.3s; }
-        .logo-area { padding: 24px; display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; border-bottom: 1px solid var(--border); }
-        .logo-icon { background: var(--primary); color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; border: 2px solid var(--border);}
+        
+        /* LOGO AREA (Kırmızı alan düzeltildi) */
+        .logo-area { padding: 20px; display: flex; align-items: center; gap: 15px; font-weight: 800; font-size: 22px; border-bottom: 1px solid var(--border); letter-spacing: 1px;}
+        .logo-icon { background: var(--primary); color: #fff; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; border: 2px solid var(--border); flex-shrink: 0;}
         .logo-icon img { width: 100%; height: 100%; object-fit: cover; }
         
         .nav-section { padding: 20px 16px; flex: 1; overflow-y: auto;}
         .nav-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; margin-bottom: 12px; padding-left: 12px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: var(--text-muted); font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; margin-bottom: 4px; transition: 0.2s; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: var(--text-muted); font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; margin-bottom: 4px; transition: 0.2s; border: none; outline: none;}
         .nav-item:hover, .nav-item.active { background: var(--bg); color: var(--primary); }
         .nav-item svg { width: 18px; height: 18px; }
 
@@ -252,9 +255,11 @@ function key_status_badge($v) {
         .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; position: relative; }
         #dynamic-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 0; opacity: 0.95; pointer-events: none; display: none; }
         
+        /* TOPBAR (Beyaz çizgi yerine terminal yazisi) */
         .topbar { height: 72px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; position: relative; z-index: 1; transition: background 0.3s, border-color 0.3s;}
         .breadcrumb { font-size: 14px; color: var(--text-muted); font-weight: 600; }
         .breadcrumb span { color: var(--text); }
+        .terminal-text { font-family: 'Share Tech Mono', monospace; font-size: 20px; letter-spacing: 2px; color: var(--primary); font-weight: bold; text-transform: uppercase;}
         
         .content-area { padding: 30px; max-width: 1200px; margin: 0 auto; width: 100%; display: none; position: relative; z-index: 1;}
         .content-area.active { display: block; animation: fadeIn 0.3s ease-out; }
@@ -354,27 +359,22 @@ function key_status_badge($v) {
         .social-title { font-size: 20px; font-weight: 700; margin-bottom: 5px; }
         .social-link-text { font-size: 14px; color: var(--text-muted); font-weight: 600; }
 
-        /* RGB 1443 ANIMATION - HARDCORE */
-        @keyframes rgbAnimation {
-            0% { color: #ff0000; border-color: #ff0000; background-color: rgba(255, 0, 0, 0.1); box-shadow: 0 0 10px #ff0000; }
-            25% { color: #00ff00; border-color: #00ff00; background-color: rgba(0, 255, 0, 0.1); box-shadow: 0 0 10px #00ff00; }
-            50% { color: #0000ff; border-color: #0000ff; background-color: rgba(0, 0, 255, 0.1); box-shadow: 0 0 10px #0000ff; }
-            75% { color: #ffff00; border-color: #ffff00; background-color: rgba(255, 255, 0, 0.1); box-shadow: 0 0 10px #ffff00; }
-            100% { color: #ff0000; border-color: #ff0000; background-color: rgba(255, 0, 0, 0.1); box-shadow: 0 0 10px #ff0000; }
-        }
-
-        .rgb-theme body, .rgb-theme .card, .rgb-theme .sidebar, .rgb-theme .topbar {
-            background: #000000 !important;
-            color: #ffffff !important;
-        }
-
-        .rgb-theme * {
-            animation: rgbAnimation 3s linear infinite !important;
-            text-shadow: 0 0 5px currentColor !important;
+        /* RGB 1443 ANIMATION */
+        @keyframes rgbHue {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
         }
         
-        .rgb-theme input, .rgb-theme select, .rgb-theme textarea {
-            background: #111 !important;
+        /* Tüm body rgb olur ama terminal texti ve logo haric */
+        .rgb-theme *:not(.terminal-text):not(.logo-area):not(.logo-area *) {
+            animation: rgbHue 2s linear infinite !important;
+            text-shadow: 0 0 8px currentColor !important;
+            box-shadow: 0 0 15px currentColor !important;
+            border-color: currentColor !important;
+        }
+        
+        .rgb-theme body, .rgb-theme .card, .rgb-theme .sidebar, .rgb-theme .topbar {
+            background: #000 !important;
             color: #fff !important;
         }
 
@@ -443,6 +443,8 @@ function key_status_badge($v) {
         <div id="dynamic-bg"></div>
         <header class="topbar">
             <div class="breadcrumb">Dashboard / <span id="currentPageTitle">Main Page</span></div>
+            <!-- Sağ üstteki yazı -->
+            <div class="terminal-text" id="headerTerminalText">AKO SKERRR</div>
         </header>
 
         <!-- MAIN PAGE (TELEGRAM) -->
@@ -753,15 +755,26 @@ function key_status_badge($v) {
             </div>
         </div>
 
-        <!-- SETTINGS (TEMA VE ARKA PLAN) -->
+        <!-- SETTINGS -->
         <div id="settingsTab" class="content-area">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Header Settings</div>
+                </div>
+                <p style="color:var(--text-muted); margin-bottom:20px; font-size:14px; font-weight:600;">Change the text in the top right corner.</p>
+                <div class="form-group">
+                    <label>Header Title</label>
+                    <input type="text" id="headerTitleInput" class="form-control" placeholder="e.g. AKO SKERRR">
+                </div>
+                <button type="button" class="btn btn-primary" onclick="saveHeaderTitle()">Save Title</button>
+            </div>
+
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">Theme Selection</div>
                 </div>
                 <p style="color:var(--text-muted); margin-bottom:20px; font-size:14px; font-weight:600;">Select a theme to change the entire dashboard style.</p>
                 
-                <!-- Temalar (Acilir Menu) -->
                 <select id="themeSelect" class="form-control" onchange="setTheme(this.value)" style="padding: 12px; font-size: 16px;">
                     <option value="default">Default (Light)</option>
                     <option value="dark">Dark Mode</option>
@@ -994,6 +1007,14 @@ function key_status_badge($v) {
             document.getElementById('topLogoText').style.display = 'none';
         }
 
+        // --- HEADER TITLE ---
+        function saveHeaderTitle() {
+            var title = document.getElementById('headerTitleInput').value;
+            if (title.trim() === "") title = "AKO SKERRR";
+            localStorage.setItem('headerTitle', title);
+            document.getElementById('headerTerminalText').innerText = title;
+        }
+
         // --- TEMA MANTIĞI ---
         function setTheme(theme) {
             localStorage.setItem('themeMode', theme);
@@ -1105,6 +1126,10 @@ function key_status_badge($v) {
 
             var savedNick = localStorage.getItem('ownerNickname');
             if (savedNick) document.getElementById('displayNickname').innerText = savedNick;
+
+            var savedHeader = localStorage.getItem('headerTitle') || 'AKO SKERRR';
+            document.getElementById('headerTerminalText').innerText = savedHeader;
+            document.getElementById('headerTitleInput').value = savedHeader;
         };
     </script>
 </body>
