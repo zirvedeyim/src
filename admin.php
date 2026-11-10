@@ -1,8 +1,8 @@
 <?php
 session_start();
 
-$admin_user = "zirve";
-$admin_pass = "wear5555.2013";
+$admin_user = "zirvedeyim0";
+$admin_pass = "wear5555.2013a";
 
 $json_file = "keys.json";
 $backup_file = "keys_backup.json";
@@ -39,24 +39,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     function getDurationAndPrefix($type) {
-        $now = time();
         $prefix = "DARKIOS-";
-        $expire = $now + 86400;
+        $duration_seconds = 0; // Süre başlangıçta 0
 
         if (strpos($type, 'TEST_') === 0) {
             $prefix = "TESTERKEY-";
             $type = str_replace('TEST_', '', $type);
         }
 
-        if ($type == '1H') { $expire = $now + 3600; $prefix .= "1H-"; }
-        elseif ($type == '6H') { $expire = $now + (6 * 3600); $prefix .= "6H-"; }
-        elseif ($type == '12H') { $expire = $now + (12 * 3600); $prefix .= "12H-"; }
-        elseif ($type == '1D') { $expire = $now + 86400; $prefix .= "1D-"; }
-        elseif ($type == '7D') { $expire = $now + (7 * 86400); $prefix .= "7D-"; }
-        elseif ($type == '30D') { $expire = $now + (30 * 86400); $prefix .= "30D-"; }
-        elseif ($type == 'LIFETIME') { $expire = 0; $prefix .= "LIFETIME-"; }
+        if ($type == '1H') { $duration_seconds = 3600; $prefix .= "1H-"; }
+        elseif ($type == '6H') { $duration_seconds = 6 * 3600; $prefix .= "6H-"; }
+        elseif ($type == '12H') { $duration_seconds = 12 * 3600; $prefix .= "12H-"; }
+        elseif ($type == '1D') { $duration_seconds = 86400; $prefix .= "1D-"; }
+        elseif ($type == '7D') { $duration_seconds = 7 * 86400; $prefix .= "7D-"; }
+        elseif ($type == '30D') { $duration_seconds = 30 * 86400; $prefix .= "30D-"; }
+        elseif ($type == 'LIFETIME') { $duration_seconds = -1; $prefix .= "LIFETIME-"; }
 
-        return ["expire" => $expire, "prefix" => $prefix];
+        return ["duration" => $duration_seconds, "prefix" => $prefix];
     }
 
     if (isset($_POST['create_key'])) {
@@ -70,8 +69,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $key = !empty($custom_key) ? $custom_key : $durInfo['prefix'] . $random_part;
         
         $keys_data[$key] = [
-            "note" => $note, "expire" => $durInfo['expire'], "max_devices" => $max_devices,
-            "devices" => [], "status" => $global_stop ? "global_banned" : "active"
+            "note" => $note, 
+            "expire" => 0, 
+            "duration" => $durInfo['duration'], 
+            "max_devices" => $max_devices,
+            "devices" => [], 
+            "status" => $global_stop ? "global_banned" : "active"
         ];
         file_put_contents($json_file, json_encode($keys_data, JSON_PRETTY_PRINT));
         file_put_contents($backup_file, json_encode($keys_data, JSON_PRETTY_PRINT));
@@ -90,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $key = $durInfo['prefix'] . $random_part;
             
             $keys_data[$key] = [
-                "note" => "Bulk", "expire" => $durInfo['expire'], "max_devices" => $max_devices,
+                "note" => "Bulk", "expire" => 0, "duration" => $durInfo['duration'], "max_devices" => $max_devices,
                 "devices" => [], "status" => $global_stop ? "global_banned" : "active"
             ];
             $generated_keys[] = $key;
@@ -130,7 +133,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $time_unit = $_POST['add_time_unit'];
                 if ($add_time > 0) {
                     $seconds = ($time_unit == 'days') ? $add_time * 86400 : $add_time * 3600;
-                    if ($keys_data[$k]['expire'] > 0) { $keys_data[$k]['expire'] += $seconds; }
+                    if ($keys_data[$k]['expire'] > 0) { 
+                        $keys_data[$k]['expire'] += $seconds; 
+                    } else {
+                        // Eğer henüz süre başlamamışsa (0 ise) duration'a ekle
+                        if(isset($keys_data[$k]['duration']) && $keys_data[$k]['duration'] != -1) {
+                            $keys_data[$k]['duration'] += $seconds;
+                        }
+                    }
                 }
             }
             elseif ($act == 'add_device') {
@@ -222,7 +232,6 @@ function key_status_badge($v) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet"> <!-- Terminal Font -->
     <style>
-        /* DEFAULT THEME VARIABLES */
         :root {
             --bg: #f8fafc; --sidebar: #ffffff; --card: #ffffff; --border: #e2e8f0;
             --text: #0f172a; --text-muted: #64748b; --primary: #6366f1; --primary-hover: #4f46e5;
@@ -234,7 +243,6 @@ function key_status_badge($v) {
         /* SIDEBAR */
         .sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: background 0.3s, border-color 0.3s; }
         
-        /* LOGO AREA (Kırmızı alan düzeltildi) */
         .logo-area { padding: 20px; display: flex; align-items: center; gap: 15px; font-weight: 800; font-size: 22px; border-bottom: 1px solid var(--border); letter-spacing: 1px;}
         .logo-icon { background: var(--primary); color: #fff; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; border: 2px solid var(--border); flex-shrink: 0;}
         .logo-icon img { width: 100%; height: 100%; object-fit: cover; }
@@ -255,7 +263,6 @@ function key_status_badge($v) {
         .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; position: relative; }
         #dynamic-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 0; opacity: 0.95; pointer-events: none; display: none; }
         
-        /* TOPBAR (Beyaz çizgi yerine terminal yazisi) */
         .topbar { height: 72px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; position: relative; z-index: 1; transition: background 0.3s, border-color 0.3s;}
         .breadcrumb { font-size: 14px; color: var(--text-muted); font-weight: 600; }
         .breadcrumb span { color: var(--text); }
@@ -365,7 +372,6 @@ function key_status_badge($v) {
             100% { filter: hue-rotate(360deg); }
         }
         
-        /* Tüm body rgb olur ama terminal texti ve logo haric */
         .rgb-theme *:not(.terminal-text):not(.logo-area):not(.logo-area *) {
             animation: rgbHue 2s linear infinite !important;
             text-shadow: 0 0 8px currentColor !important;
@@ -443,7 +449,6 @@ function key_status_badge($v) {
         <div id="dynamic-bg"></div>
         <header class="topbar">
             <div class="breadcrumb">Dashboard / <span id="currentPageTitle">Main Page</span></div>
-            <!-- Sağ üstteki yazı -->
             <div class="terminal-text" id="headerTerminalText">AKO SKERRR</div>
         </header>
 
@@ -554,8 +559,8 @@ function key_status_badge($v) {
                                     </td>
                                     <td><?= key_status_badge($v) ?></td>
                                     <td>
-                                        <span class="countdown" data-expire="<?= $v['expire'] ?>" style="font-weight:700; color:<?= ($v['expire'] > 0 && $v['expire'] < time()) ? '#ef4444' : '#f59e0b' ?>;">
-                                            <?= $v['expire'] == 0 ? 'Lifetime' : 'Loading...' ?>
+                                        <span class="countdown" data-expire="<?= $v['expire'] ?>" data-duration="<?= isset($v['duration']) ? $v['duration'] : 0 ?>" style="font-weight:700; color:<?= ($v['expire'] > 0 && $v['expire'] < time()) ? '#ef4444' : '#f59e0b' ?>;">
+                                            <?= ($v['expire'] == 0 && (!isset($v['duration']) || $v['duration'] != -1)) ? 'Not Started' : (($v['expire'] == 0 && $v['duration'] == -1) ? 'Lifetime' : 'Loading...') ?>
                                         </span>
                                     </td>
                                     <td><span style="font-weight:700;"><?= count($v['devices']) ?></span> / <?= $v['max_devices'] ?></td>
@@ -633,8 +638,8 @@ function key_status_badge($v) {
                                     <td><div class="key-text"><?= htmlspecialchars($k) ?></div></td>
                                     <td><?= key_status_badge($v) ?></td>
                                     <td>
-                                        <span class="countdown" data-expire="<?= $v['expire'] ?>" style="font-weight:700; color:<?= ($v['expire'] > 0 && $v['expire'] < time()) ? '#ef4444' : '#f59e0b' ?>;">
-                                            <?= $v['expire'] == 0 ? 'Lifetime' : 'Loading...' ?>
+                                        <span class="countdown" data-expire="<?= $v['expire'] ?>" data-duration="<?= isset($v['duration']) ? $v['duration'] : 0 ?>" style="font-weight:700; color:<?= ($v['expire'] > 0 && $v['expire'] < time()) ? '#ef4444' : '#f59e0b' ?>;">
+                                            <?= ($v['expire'] == 0 && (!isset($v['duration']) || $v['duration'] != -1)) ? 'Not Started' : (($v['expire'] == 0 && $v['duration'] == -1) ? 'Lifetime' : 'Loading...') ?>
                                         </span>
                                     </td>
                                     <td>
@@ -938,9 +943,22 @@ function key_status_badge($v) {
 
             countdowns.forEach(function(el) {
                 var expire = parseInt(el.getAttribute('data-expire'));
-                if (expire === 0) { el.innerText = "Lifetime"; el.style.color = "#8b5cf6"; return; }
+                var duration = parseInt(el.getAttribute('data-duration') || "0");
+                
+                if (expire === 0) { 
+                    if(duration == -1) {
+                        el.innerText = "Lifetime"; 
+                        el.style.color = "#8b5cf6";
+                    } else {
+                        el.innerText = "Not Started"; 
+                        el.style.color = "#3b82f6";
+                    }
+                    return; 
+                }
+                
                 var diff = expire - now;
                 if (diff <= 0) { el.innerText = "Expired"; el.style.color = "#ef4444"; return; }
+                
                 var days = Math.floor(diff / 86400);
                 var hours = Math.floor((diff % 86400) / 3600);
                 var minutes = Math.floor((diff % 3600) / 60);
@@ -1025,62 +1043,33 @@ function key_status_badge($v) {
             let root = document.documentElement;
             let body = document.body;
             
-            // Önceki rgb sınıfını temizle
             body.classList.remove('rgb-theme');
 
-            // Varsayilan (Default)
             let colors = {
                 '--bg': '#f8fafc', '--sidebar': '#ffffff', '--card': '#ffffff', '--border': '#e2e8f0',
                 '--text': '#0f172a', '--text-muted': '#64748b', '--primary': '#6366f1', '--primary-hover': '#4f46e5'
             };
 
             if (theme === 'dark') {
-                colors = {
-                    '--bg': '#0f172a', '--sidebar': '#1e293b', '--card': '#1e293b', '--border': '#334155',
-                    '--text': '#f8fafc', '--text-muted': '#94a3b8', '--primary': '#6366f1', '--primary-hover': '#4f46e5'
-                };
+                colors = { '--bg': '#0f172a', '--sidebar': '#1e293b', '--card': '#1e293b', '--border': '#334155', '--text': '#f8fafc', '--text-muted': '#94a3b8', '--primary': '#6366f1', '--primary-hover': '#4f46e5' };
             } else if (theme === 'cyberpunk') {
-                colors = {
-                    '--bg': '#09090b', '--sidebar': '#18181b', '--card': '#18181b', '--border': '#3b0764',
-                    '--text': '#fdf4ff', '--text-muted': '#a21caf', '--primary': '#d946ef', '--primary-hover': '#c026d3'
-                };
+                colors = { '--bg': '#09090b', '--sidebar': '#18181b', '--card': '#18181b', '--border': '#3b0764', '--text': '#fdf4ff', '--text-muted': '#a21caf', '--primary': '#d946ef', '--primary-hover': '#c026d3' };
             } else if (theme === 'neon') {
-                colors = {
-                    '--bg': '#050505', '--sidebar': '#111111', '--card': '#111111', '--border': '#10b981',
-                    '--text': '#ecfdf5', '--text-muted': '#059669', '--primary': '#10b981', '--primary-hover': '#047857'
-                };
+                colors = { '--bg': '#050505', '--sidebar': '#111111', '--card': '#111111', '--border': '#10b981', '--text': '#ecfdf5', '--text-muted': '#059669', '--primary': '#10b981', '--primary-hover': '#047857' };
             } else if (theme === 'sunset') {
-                colors = {
-                    '--bg': '#fff7ed', '--sidebar': '#ffedd5', '--card': '#ffffff', '--border': '#fdba74',
-                    '--text': '#431407', '--text-muted': '#9a3412', '--primary': '#f97316', '--primary-hover': '#ea580c'
-                };
+                colors = { '--bg': '#fff7ed', '--sidebar': '#ffedd5', '--card': '#ffffff', '--border': '#fdba74', '--text': '#431407', '--text-muted': '#9a3412', '--primary': '#f97316', '--primary-hover': '#ea580c' };
             } else if (theme === 'ocean') {
-                colors = {
-                    '--bg': '#ecfeff', '--sidebar': '#cffafe', '--card': '#ffffff', '--border': '#67e8f9',
-                    '--text': '#164e63', '--text-muted': '#0e7490', '--primary': '#06b6d4', '--primary-hover': '#0891b2'
-                };
+                colors = { '--bg': '#ecfeff', '--sidebar': '#cffafe', '--card': '#ffffff', '--border': '#67e8f9', '--text': '#164e63', '--text-muted': '#0e7490', '--primary': '#06b6d4', '--primary-hover': '#0891b2' };
             } else if (theme === 'royal') {
-                colors = {
-                    '--bg': '#2e1065', '--sidebar': '#4c1d95', '--card': '#4c1d95', '--border': '#6d28d9',
-                    '--text': '#fef08a', '--text-muted': '#ca8a04', '--primary': '#eab308', '--primary-hover': '#ca8a04'
-                };
+                colors = { '--bg': '#2e1065', '--sidebar': '#4c1d95', '--card': '#4c1d95', '--border': '#6d28d9', '--text': '#fef08a', '--text-muted': '#ca8a04', '--primary': '#eab308', '--primary-hover': '#ca8a04' };
             } else if (theme === 'minimal') {
-                colors = {
-                    '--bg': '#f5f5f5', '--sidebar': '#e5e5e5', '--card': '#ffffff', '--border': '#d4d4d4',
-                    '--text': '#171717', '--text-muted': '#525252', '--primary': '#171717', '--primary-hover': '#404040'
-                };
+                colors = { '--bg': '#f5f5f5', '--sidebar': '#e5e5e5', '--card': '#ffffff', '--border': '#d4d4d4', '--text': '#171717', '--text-muted': '#525252', '--primary': '#171717', '--primary-hover': '#404040' };
             } else if (theme === 'rgb1443') {
-                // RGB 1443
                 body.classList.add('rgb-theme');
-                colors = {
-                    '--bg': '#000000', '--sidebar': '#000000', '--card': '#111111', '--border': '#ffffff',
-                    '--text': '#ffffff', '--text-muted': '#aaaaaa', '--primary': '#ffffff', '--primary-hover': '#cccccc'
-                };
+                colors = { '--bg': '#000000', '--sidebar': '#000000', '--card': '#111111', '--border': '#ffffff', '--text': '#ffffff', '--text-muted': '#aaaaaa', '--primary': '#ffffff', '--primary-hover': '#cccccc' };
             }
 
-            for (let key in colors) {
-                root.style.setProperty(key, colors[key]);
-            }
+            for (let key in colors) { root.style.setProperty(key, colors[key]); }
         }
 
         // --- ARKA PLAN MANTIĞI ---
@@ -1112,7 +1101,6 @@ function key_status_badge($v) {
             bgEl.style.opacity = '0.95';
         }
 
-        // --- SAYFA YUKLENDIGINDE AYARLARI UYGULA ---
         window.onload = function() {
             var savedAvatar = localStorage.getItem('ownerAvatar');
             if (savedAvatar) applyAvatar(savedAvatar);
