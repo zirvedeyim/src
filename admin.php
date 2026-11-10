@@ -239,12 +239,12 @@ function key_status_badge($v) {
         .nav-section { padding: 20px 16px; flex: 1; overflow-y: auto;}
         .nav-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; margin-bottom: 12px; padding-left: 12px; }
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: var(--text-muted); font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; margin-bottom: 4px; transition: 0.2s; }
-        .nav-item:hover, .nav-item.active { background: #f1f5f9; color: var(--primary); }
+        .nav-item:hover, .nav-item.active { background: var(--bg); color: var(--primary); }
         .nav-item svg { width: 18px; height: 18px; }
 
         .sidebar-bottom { padding: 20px; border-top: 1px solid var(--border); }
         .user-profile { display: flex; align-items: center; gap: 12px; margin-top: 15px; cursor: pointer; padding: 8px; border-radius: 8px; transition: 0.2s; background: var(--bg); border: 1px solid var(--border);}
-        .user-profile:hover { background: #f1f5f9; }
+        .user-profile:hover { background: var(--border); }
         .user-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; justify-content: center; align-items: center; font-weight: 700; overflow: hidden; position: relative; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
         .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -276,7 +276,7 @@ function key_status_badge($v) {
         .btn-danger { background: var(--danger); color: #fff; }
         .btn-danger:hover { background: #dc2626; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-        .btn-outline:hover { background: #f1f5f9; }
+        .btn-outline:hover { background: var(--bg); }
         .btn-success { background: var(--success); color: #fff; }
 
         /* TABLE */
@@ -353,11 +353,6 @@ function key_status_badge($v) {
         .social-icon svg { width: 100%; height: 100%; }
         .social-title { font-size: 20px; font-weight: 700; margin-bottom: 5px; }
         .social-link-text { font-size: 14px; color: var(--text-muted); font-weight: 600; }
-
-        /* THEME GRID */
-        .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; margin-top: 10px; }
-        .theme-color { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s; }
-        .theme-color:hover { transform: scale(1.1); border-color: #fff; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -738,28 +733,21 @@ function key_status_badge($v) {
         <div id="settingsTab" class="content-area">
             <div class="card">
                 <div class="card-header">
-                    <div class="card-title">Theme Colors</div>
+                    <div class="card-title">Theme Selection</div>
                 </div>
-                <p style="color:var(--text-muted); margin-bottom:20px; font-size:14px; font-weight:600;">Select a primary color for the dashboard.</p>
+                <p style="color:var(--text-muted); margin-bottom:20px; font-size:14px; font-weight:600;">Select a theme to change the entire dashboard style.</p>
                 
-                <!-- 15 Farkli Tema Rengi -->
-                <div class="theme-grid">
-                    <div class="theme-color" style="background: #6366f1;" onclick="setTheme('#6366f1')" title="Indigo"></div>
-                    <div class="theme-color" style="background: #ef4444;" onclick="setTheme('#ef4444')" title="Red"></div>
-                    <div class="theme-color" style="background: #10b981;" onclick="setTheme('#10b981')" title="Green"></div>
-                    <div class="theme-color" style="background: #f59e0b;" onclick="setTheme('#f59e0b')" title="Yellow"></div>
-                    <div class="theme-color" style="background: #3b82f6;" onclick="setTheme('#3b82f6')" title="Blue"></div>
-                    <div class="theme-color" style="background: #8b5cf6;" onclick="setTheme('#8b5cf6')" title="Purple"></div>
-                    <div class="theme-color" style="background: #ec4899;" onclick="setTheme('#ec4899')" title="Pink"></div>
-                    <div class="theme-color" style="background: #06b6d4;" onclick="setTheme('#06b6d4')" title="Cyan"></div>
-                    <div class="theme-color" style="background: #f97316;" onclick="setTheme('#f97316')" title="Orange"></div>
-                    <div class="theme-color" style="background: #84cc16;" onclick="setTheme('#84cc16')" title="Lime"></div>
-                    <div class="theme-color" style="background: #14b8a6;" onclick="setTheme('#14b8a6')" title="Teal"></div>
-                    <div class="theme-color" style="background: #d946ef;" onclick="setTheme('#d946ef')" title="Fuchsia"></div>
-                    <div class="theme-color" style="background: #0f172a;" onclick="setTheme('#0f172a')" title="Dark"></div>
-                    <div class="theme-color" style="background: #64748b;" onclick="setTheme('#64748b')" title="Slate"></div>
-                    <div class="theme-color" style="background: #f43f5e;" onclick="setTheme('#f43f5e')" title="Rose"></div>
-                </div>
+                <!-- Temalar (Acilir Menu) -->
+                <select class="form-control" onchange="setTheme(this.value)" style="padding: 12px; font-size: 16px;">
+                    <option value="default">Default (Light)</option>
+                    <option value="dark">Dark Mode</option>
+                    <option value="cyberpunk">Cyberpunk (Purple/Cyan)</option>
+                    <option value="neon">Neon (Green/Pink)</option>
+                    <option value="sunset">Sunset (Orange/Red)</option>
+                    <option value="ocean">Ocean (Blue/Teal)</option>
+                    <option value="royal">Royal (Gold/Purple)</option>
+                    <option value="minimal">Minimal (Grey/Black)</option>
+                </select>
             </div>
 
             <div class="card">
@@ -776,19 +764,11 @@ function key_status_badge($v) {
 
             <div class="card">
                 <div class="card-header">
-                    <div class="card-title">API Settings</div>
+                    <div class="card-title">Danger Zone</div>
                 </div>
-                <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:16px;">
-                    <div style="font-weight:700; margin-bottom:4px;">API Endpoint</div>
-                    <div style="font-family:monospace; color:var(--primary); font-weight:600;">https://a-g9eo.onrender.com/api.php</div>
-                </div>
-
-                <div style="border-top:1px solid var(--border); padding-top:20px; margin-top:20px;">
-                    <h4 style="color:var(--danger); margin-bottom:12px; font-weight:700;">Danger Zone</h4>
-                    <form method="POST" onsubmit="return confirm('Delete ALL keys?');">
-                        <button type="submit" name="delete_all" class="btn btn-danger">Delete All Keys</button>
-                    </form>
-                </div>
+                <form method="POST" onsubmit="return confirm('Delete ALL keys?');">
+                    <button type="submit" name="delete_all" class="btn btn-danger">Delete All Keys</button>
+                </form>
             </div>
         </div>
 
@@ -989,19 +969,64 @@ function key_status_badge($v) {
             document.getElementById('topLogoText').style.display = 'none';
         }
 
-        // --- TEMA VE ARKA PLAN MANTIĞI ---
-        function setTheme(color) {
-            document.documentElement.style.setProperty('--primary', color);
-            document.documentElement.style.setProperty('--primary-hover', color); // Hover rengini de esitliyoruz
-            localStorage.setItem('themeColor', color);
-            // Buton renklerini de guncelle
-            document.querySelectorAll('.btn-primary').forEach(el => {
-                el.style.background = color;
-                el.style.borderColor = color;
-            });
-            alert("Theme color updated!");
+        // --- TEMA MANTIĞI ---
+        function setTheme(theme) {
+            localStorage.setItem('themeMode', theme);
+            applyTheme(theme);
         }
 
+        function applyTheme(theme) {
+            let root = document.documentElement;
+            
+            // Varsayilan (Default)
+            let colors = {
+                '--bg': '#f8fafc', '--sidebar': '#ffffff', '--card': '#ffffff', '--border': '#e2e8f0',
+                '--text': '#0f172a', '--text-muted': '#64748b', '--primary': '#6366f1', '--primary-hover': '#4f46e5'
+            };
+
+            if (theme === 'dark') {
+                colors = {
+                    '--bg': '#0f172a', '--sidebar': '#1e293b', '--card': '#1e293b', '--border': '#334155',
+                    '--text': '#f8fafc', '--text-muted': '#94a3b8', '--primary': '#6366f1', '--primary-hover': '#4f46e5'
+                };
+            } else if (theme === 'cyberpunk') {
+                colors = {
+                    '--bg': '#09090b', '--sidebar': '#18181b', '--card': '#18181b', '--border': '#3b0764',
+                    '--text': '#fdf4ff', '--text-muted': '#a21caf', '--primary': '#d946ef', '--primary-hover': '#c026d3'
+                };
+            } else if (theme === 'neon') {
+                colors = {
+                    '--bg': '#050505', '--sidebar': '#111111', '--card': '#111111', '--border': '#10b981',
+                    '--text': '#ecfdf5', '--text-muted': '#059669', '--primary': '#10b981', '--primary-hover': '#047857'
+                };
+            } else if (theme === 'sunset') {
+                colors = {
+                    '--bg': '#fff7ed', '--sidebar': '#ffedd5', '--card': '#ffffff', '--border': '#fdba74',
+                    '--text': '#431407', '--text-muted': '#9a3412', '--primary': '#f97316', '--primary-hover': '#ea580c'
+                };
+            } else if (theme === 'ocean') {
+                colors = {
+                    '--bg': '#ecfeff', '--sidebar': '#cffafe', '--card': '#ffffff', '--border': '#67e8f9',
+                    '--text': '#164e63', '--text-muted': '#0e7490', '--primary': '#06b6d4', '--primary-hover': '#0891b2'
+                };
+            } else if (theme === 'royal') {
+                colors = {
+                    '--bg': '#2e1065', '--sidebar': '#4c1d95', '--card': '#4c1d95', '--border': '#6d28d9',
+                    '--text': '#fef08a', '--text-muted': '#ca8a04', '--primary': '#eab308', '--primary-hover': '#ca8a04'
+                };
+            } else if (theme === 'minimal') {
+                colors = {
+                    '--bg': '#f5f5f5', '--sidebar': '#e5e5e5', '--card': '#ffffff', '--border': '#d4d4d4',
+                    '--text': '#171717', '--text-muted': '#525252', '--primary': '#171717', '--primary-hover': '#404040'
+                };
+            }
+
+            for (let key in colors) {
+                root.style.setProperty(key, colors[key]);
+            }
+        }
+
+        // --- ARKA PLAN MANTIĞI ---
         function uploadBackground(input) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
@@ -1017,8 +1042,9 @@ function key_status_badge($v) {
 
         function removeBackground() {
             localStorage.removeItem('dashboardBg');
-            document.getElementById('dynamic-bg').style.backgroundImage = "none";
-            document.getElementById('dynamic-bg').style.display = 'none';
+            var bgEl = document.getElementById('dynamic-bg');
+            bgEl.style.backgroundImage = "none";
+            bgEl.style.display = 'none';
             alert("Background removed!");
         }
 
@@ -1026,9 +1052,10 @@ function key_status_badge($v) {
             var bgEl = document.getElementById('dynamic-bg');
             bgEl.style.backgroundImage = "url('" + bgData + "')";
             bgEl.style.display = 'block';
+            bgEl.style.opacity = '0.95';
         }
 
-        // Sayfa yuklendiginde hafizadaki ayarlari uygula
+        // --- SAYFA YUKLENDIGINDE AYARLARI UYGULA ---
         window.onload = function() {
             var savedAvatar = localStorage.getItem('ownerAvatar');
             if (savedAvatar) applyAvatar(savedAvatar);
@@ -1036,8 +1063,10 @@ function key_status_badge($v) {
             var savedBg = localStorage.getItem('dashboardBg');
             if (savedBg) applyBackground(savedBg);
 
-            var savedTheme = localStorage.getItem('themeColor');
-            if (savedTheme) setTheme(savedTheme);
+            var savedTheme = localStorage.getItem('themeMode') || 'default';
+            applyTheme(savedTheme);
+            // Select kutusunu guncelle
+            document.querySelector('select[onchange="setTheme(this.value)"]').value = savedTheme;
 
             var savedNick = localStorage.getItem('ownerNickname');
             if (savedNick) document.getElementById('displayNickname').innerText = savedNick;
