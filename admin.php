@@ -25,7 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $global_stop = !$global_stop;
         file_put_contents($config_file, json_encode(["global_stop" => $global_stop]));
         
-        // Eğer Stop açıldıysa, tüm keyleri "global_banned" olarak işaretle
         if ($global_stop) {
             foreach ($keys_data as $k => $v) {
                 if ($v['status'] !== 'banned') {
@@ -33,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         } else {
-            // Stop kapatıldıysa, sadece "global_banned" olanları "active" yap
             foreach ($keys_data as $k => $v) {
                 if ($v['status'] === 'global_banned') {
                     $keys_data[$k]['status'] = 'active';
@@ -84,7 +82,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($keys_data[$k])) {
             if ($act == 'delete') { unset($keys_data[$k]); }
             elseif ($act == 'block') { 
-                // Elle banlama
                 $keys_data[$k]['status'] = ($keys_data[$k]['status'] == 'banned') ? ($global_stop ? 'global_banned' : 'active') : 'banned'; 
             }
             elseif ($act == 'reset_hwid') { $keys_data[$k]['devices'] = []; }
@@ -136,7 +133,7 @@ function key_time_left($v) {
         .logo-area { padding: 24px; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; border-bottom: 1px solid var(--border); }
         .logo-icon { background: var(--primary); color: #fff; width: 32px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center; }
         
-        .nav-section { padding: 20px 16px; flex: 1; }
+        .nav-section { padding: 20px 16px; flex: 1; overflow-y: auto;}
         .nav-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 600; margin-bottom: 12px; padding-left: 12px; }
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: var(--text-muted); font-weight: 500; font-size: 14px; cursor: pointer; text-decoration: none; margin-bottom: 4px; transition: 0.2s; }
         .nav-item:hover, .nav-item.active { background: #f1f5f9; color: var(--primary); }
@@ -198,21 +195,17 @@ function key_time_left($v) {
         .action-btn.info { color: var(--primary); border-color: #c7d2fe; }
         .action-btn.info:hover { background: #e0e7ff; }
 
-        /* GLOBAL STOP KUTUSU */
+        /* GLOBAL STOP KUTUSU (Sadece Banned Keys içinde) */
         .stop-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .stop-box.active { background: #fef2f2; border-color: #f87171; }
-        .stop-box.inactive { background: #f8fafc; border-color: #e2e8f0; }
         .stop-title { font-size: 16px; font-weight: 600; color: var(--danger); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;}
         .stop-desc { font-size: 13px; color: #7f1d1d; }
         
-        /* MODAL */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: #fff; padding: 30px; border-radius: 16px; width: 100%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-title { font-size: 18px; font-weight: 700; }
-        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); }
-        .device-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
-        .device-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+        /* CİHAZ LİSTESİ (Info Sekmesi) */
+        .device-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+        .device-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+        .device-header { font-weight: 700; color: var(--primary); margin-bottom: 12px; font-size: 16px; display: flex; align-items: center; gap: 8px;}
+        .device-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--border); }
+        .device-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
         .device-row span:first-child { color: var(--text-muted); }
         .device-row span:last-child { font-weight: 600; color: var(--text); }
 
@@ -237,6 +230,10 @@ function key_time_left($v) {
             <a href="#" class="nav-item" onclick="switchTab('bannedTab', this)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
                 Banned Keys
+            </a>
+            <a href="#" class="nav-item" onclick="switchTab('infoTab', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                Device Info
             </a>
             <a href="#" class="nav-item" onclick="switchTab('settingsTab', this)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -264,25 +261,6 @@ function key_time_left($v) {
 
         <!-- SEKME 1: TÜM KEYLER (ALL KEYS) -->
         <div id="keysTab" class="content-area active">
-            
-            <!-- GLOBAL STOP BUTONU -->
-            <div class="stop-box <?= $global_stop ? 'active' : 'inactive' ?>">
-                <div>
-                    <div class="stop-title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
-                        Global System Stop
-                    </div>
-                    <div class="stop-desc">
-                        <?= $global_stop ? "System is STOPPED. All keys are temporarily banned." : "System is ACTIVE. Keys are working normally." ?>
-                    </div>
-                </div>
-                <form method="POST">
-                    <button type="submit" name="toggle_global_stop" class="btn <?= $global_stop ? 'btn-success' : 'btn-danger' ?>">
-                        <?= $global_stop ? "Resume System" : "STOP All Keys" ?>
-                    </button>
-                </form>
-            </div>
-
             <!-- YENİ KEY OLUŞTUR -->
             <div class="card">
                 <div class="card-header">
@@ -335,7 +313,7 @@ function key_time_left($v) {
                         </thead>
                         <tbody id="keysContainer">
                             <?php foreach($keys_data as $k => $v): ?>
-                                <?php if($v['status'] == 'banned') continue; // Elle banlananları burada gösterme ?>
+                                <?php if($v['status'] == 'banned') continue; ?>
                                 <tr class="key-row" data-key="<?= htmlspecialchars(strtolower($k)) ?>" data-note="<?= htmlspecialchars(strtolower($v['note'])) ?>">
                                     <td>
                                         <div class="key-text"><?= htmlspecialchars($k) ?></div>
@@ -346,7 +324,6 @@ function key_time_left($v) {
                                     <td><span style="font-weight:600;"><?= count($v['devices']) ?></span> / <?= $v['max_devices'] ?></td>
                                     <td>
                                         <div class="action-group">
-                                            <button type="button" class="action-btn info" onclick='showInfo(<?= htmlspecialchars(json_encode($v['devices']), ENT_QUOTES, 'UTF-8') ?>)'>Info</button>
                                             <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="reset_hwid"><button type="submit" name="action_key" class="action-btn">Reset HWID</button></form>
                                             <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="block"><button type="submit" name="action_key" class="action-btn red">Ban</button></form>
                                             <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="add_time"><button type="submit" name="action_key" class="action-btn">+1D</button></form>
@@ -363,6 +340,25 @@ function key_time_left($v) {
 
         <!-- SEKME 2: BANNED KEYLER -->
         <div id="bannedTab" class="content-area">
+            <!-- GLOBAL STOP BUTONU SADECE BURADA -->
+            <div class="stop-box">
+                <div>
+                    <div class="stop-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+                        Global System Stop
+                    </div>
+                    <div class="stop-desc">
+                        <?= $global_stop ? "System is STOPPED. All keys are temporarily banned." : "System is ACTIVE. Keys are working normally." ?>
+                    </div>
+                </div>
+                <form method="POST">
+                    <button type="submit" name="toggle_global_stop" class="btn <?= $global_stop ? 'btn-success' : 'btn-danger' ?>">
+                        <?= $global_stop ? "Resume System" : "STOP All Keys" ?>
+                    </button>
+                </form>
+            </div>
+
+            <!-- BANLI KEYLERİN LİSTESİ -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">Manually Banned Keys</div>
@@ -396,7 +392,44 @@ function key_time_left($v) {
             </div>
         </div>
 
-        <!-- SEKME 3: SETTINGS -->
+        <!-- SEKME 3: CİHAZ BİLGİLERİ (INFO) -->
+        <div id="infoTab" class="content-area">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">All Registered Devices</div>
+                </div>
+                <div class="device-grid">
+                    <?php 
+                    $hasDevices = false;
+                    foreach($keys_data as $k => $v): 
+                        if (!empty($v['devices'])):
+                            foreach($v['devices'] as $dev):
+                                $hasDevices = true;
+                                $devId = (is_array($dev)) ? ($dev['id'] ?? 'Unknown') : $dev;
+                                $devModel = (is_array($dev)) ? ($dev['model'] ?? "Unknown Device") : "Unknown Device"; 
+                                $devIP = (is_array($dev)) ? ($dev['ip'] ?? "Unknown IP") : "Unknown IP";
+                                $devDate = (is_array($dev)) ? ($dev['date'] ?? "N/A") : "N/A";
+                                $devBattery = (is_array($dev)) ? ($dev['battery'] ?? "Unknown") : "Unknown";
+                    ?>
+                                <div class="device-card">
+                                    <div class="device-header">📱 <?= htmlspecialchars($devModel) ?></div>
+                                    <div class="device-row"><span>Linked Key</span> <span style="font-family:monospace; color:var(--primary);"><?= htmlspecialchars($k) ?></span></div>
+                                    <div class="device-row"><span>HWID</span> <span><?= htmlspecialchars($devId) ?></span></div>
+                                    <div class="device-row"><span>IP Address</span> <span><?= htmlspecialchars($devIP) ?></span></div>
+                                    <div class="device-row"><span>Battery</span> <span style="color:var(--success);"><?= htmlspecialchars($devBattery) ?></span></div>
+                                    <div class="device-row"><span>Last Login</span> <span><?= htmlspecialchars($devDate) ?></span></div>
+                                </div>
+                    <?php 
+                            endforeach;
+                        endif;
+                    endforeach; 
+                    if (!$hasDevices) echo '<div style="color:var(--text-muted); grid-column: 1/-1; text-align: center; padding: 40px;">No devices registered yet.</div>';
+                    ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEKME 4: SETTINGS -->
         <div id="settingsTab" class="content-area">
             <div class="card">
                 <div class="card-header">
@@ -420,19 +453,6 @@ function key_time_left($v) {
 
     </main>
 
-    <!-- INFO MODAL -->
-    <div id="infoModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Device Information</div>
-                <button class="modal-close" onclick="document.getElementById('infoModal').style.display='none'">&times;</button>
-            </div>
-            <div id="deviceListContainer">
-                <!-- JS ile doldurulacak -->
-            </div>
-        </div>
-    </div>
-
     <script>
         function switchTab(tabId, element) {
             document.querySelectorAll('.content-area').forEach(el => el.classList.remove('active'));
@@ -454,36 +474,6 @@ function key_time_left($v) {
                 } else { row.style.display = 'none'; }
             });
             document.getElementById('noResults').style.display = (visibleCount === 0 && rows.length > 0) ? 'block' : 'none';
-        }
-
-        function showInfo(devicesJson) {
-            var container = document.getElementById('deviceListContainer');
-            container.innerHTML = '';
-            var devices = devicesJson;
-            if (typeof devices === 'string') { try { devices = JSON.parse(devices); } catch(e) { devices = []; } }
-
-            if (!devices || devices.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);">No devices registered yet.</div>';
-            } else {
-                devices.forEach(function(dev, index) {
-                    var devId = (typeof dev === 'object') ? (dev.id || 'Unknown') : dev;
-                    var devModel = (typeof dev === 'object') ? (dev.model || "Unknown Device") : "Unknown Device"; 
-                    var devIP = (typeof dev === 'object') ? (dev.ip || "Unknown IP") : "Unknown IP";
-                    var devDate = (typeof dev === 'object') ? (dev.date || "N/A") : "N/A";
-                    var devBattery = (typeof dev === 'object') ? (dev.battery || "Unknown") : "Unknown";
-
-                    var div = document.createElement('div');
-                    div.className = 'device-card';
-                    div.innerHTML = 
-                        '<div style="font-weight:700; color:var(--primary); margin-bottom:10px; font-size:15px;">📱 ' + devModel + '</div>' +
-                        '<div class="device-row"><span>HWID</span> <span>' + devId + '</span></div>' +
-                        '<div class="device-row"><span>IP Address</span> <span>' + devIP + '</span></div>' +
-                        '<div class="device-row"><span>Battery</span> <span style="color:var(--success);">' + devBattery + '</span></div>' +
-                        '<div class="device-row" style="border-top:1px solid var(--border); padding-top:8px; margin-top:8px;"><span>Last Login</span> <span>' + devDate + '</span></div>';
-                    container.appendChild(div);
-                });
-            }
-            document.getElementById('infoModal').style.display = 'flex';
         }
     </script>
 </body>
