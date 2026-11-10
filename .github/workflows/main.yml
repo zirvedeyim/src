@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Kodu Repodan Çek
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Theos ve SDK Kur
         run: |
@@ -35,15 +37,18 @@ jobs:
       - name: Projeyi Derle (Paket ve Dylib)
         run: |
           make clean
-          # 'make package' komutu hem .dylib'i derler hem de .deb paketini olusturur
           make package FINALPACKAGE=1
+          
+          # Deb dosyasinin olustugu packages klasorunu bul
+          mkdir -p packages
+          
+          # Derlenen .dylib dosyasini bul ve dogrudan packages klasorunun icine (deb'in yanina) kopyala
+          find .theos/obj -name "*.dylib" -exec cp {} packages/ \;
 
       - name: Derlenen Dosyalari Yukle (Hem Deb Hem Dylib)
         uses: actions/upload-artifact@v4
         with:
           name: M7MD-Outputs
-          # Hem packages klasorundeki debi hem de obj klasorundeki dylibi alir
-          path: |
-            packages/*.deb
-            .theos/obj/**/*.dylib
+          # Artik sadece packages klasorunu yukluyoruz, icinde hem deb hem dylib olacak
+          path: packages/
           if-no-files-found: error
