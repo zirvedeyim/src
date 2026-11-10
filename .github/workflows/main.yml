@@ -8,26 +8,31 @@ on:
 jobs:
   build:
     runs-on: macos-latest
-    permissions:
-      contents: write # Repoya dosya yazma izni
 
     steps:
       - name: Kodu Repodan Çek
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-      - name: Theos, SDK ve ldid Kur
+      - name: Theos ve SDK Kur
         run: |
+          # Theos'u kur
           git clone --recursive https://github.com/theos/theos.git $HOME/theos
           cd $HOME/theos
+          
+          # iOS SDK'larını indir
           curl -L -o sdks.tar.gz https://github.com/theos/sdks/archive/refs/heads/master.tar.gz
           tar -xzf sdks.tar.gz
           mv sdks-master sdks
           rm sdks.tar.gz
           
+          # ldid (imzalama araci) indir
           curl -L -o /tmp/ldid https://github.com/ProcursusTeam/ldid/releases/latest/download/ldid_macosx_arm64
           chmod +x /tmp/ldid
           sudo mv /tmp/ldid /usr/local/bin/ldid
           
+          # Ortam degiskenlerini ayarla
           echo "THEOS=$HOME/theos" >> $GITHUB_ENV
           echo "$HOME/theos/bin" >> $GITHUB_PATH
 
@@ -35,36 +40,13 @@ jobs:
         run: |
           make clean
           make package FINALPACKAGE=1
-          
-      - name: Dylib Dosyasini Ana Dizine Kopyala (Numarali)
-        run: |
-          # Derlenen dylib dosyasini bul
-          DY_PATH=$(find .theos/obj -name "*.dylib" | head -n 1)
-          
-          if [ -n "$DY_PATH" ]; then
-            # Dosya adini al (örnegin: M7MD.dylib)
-            FILENAME=$(basename "$DY_PATH")
-            # Uzantiyi ayir (M7MD ve .dylib)
-            NAME="${FILENAME%.*}"
-            EXT=".${FILENAME##*.}"
-            
-            # Eger dosya ana dizinde varsa, sonuna sayi ekle
-            COUNTER=1
-            NEW_FILENAME="$FILENAME"
-            while [ -f "./$NEW_FILENAME" ]; do
-              NEW_FILENAME="${NAME}_${COUNTER}${EXT}"
-              COUNTER=$((COUNTER+1))
-            done
-            
-            # Yeni isimle kopyala
-            cp "$DY_PATH" "./$NEW_FILENAME"
-            echo "Kopyalandi: $NEW_FILENAME"
-          fi
 
-      - name: Olusan Dylib Dosyasini Repoya Gonder
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add *.dylib
-          git commit -m "Otomatik derlenen yeni dylib dosyasi eklendi" || echo "Degisiklik yok"
-          git push
+      - name: Derlenen Dosyalari Yukle
+        uses: actions/upload-artifact@v4
+        with:
+          name: M7MD-Dylib-Output
+          # Hem .deb hem de .dylib dosyalarini paketler
+          path: |
+            packages/*.deb
+            .theos/obj/**/*.dylib
+          if-no-files-found: warn
