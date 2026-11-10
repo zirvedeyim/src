@@ -14,6 +14,16 @@ if (!is_array($keys_data)) $keys_data = [];
 $input = json_decode(file_get_contents('php://input'), true);
 $key = isset($input['key']) ? trim($input['key']) : '';
 $device_id = isset($input['device_id']) ? trim($input['device_id']) : '';
+$device_model = isset($input['device_model']) ? trim($input['device_model']) : 'Unknown Device';
+
+// Kullanıcının IP adresini al (Cloudflare veya Proxy arkasındaysa kontrol et)
+if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+    $ip_address = $_SERVER['HTTP_CLIENT_IP'];
+} elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+    $ip_address = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
+} else {
+    $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'Unknown IP';
+}
 
 if (empty($key) || empty($device_id)) {
     echo json_encode(["status" => "error", "message" => "Key ve ya Device ID daxil edilmeyib."]);
@@ -21,7 +31,7 @@ if (empty($key) || empty($device_id)) {
 }
 
 if (!isset($keys_data[$key])) {
-    echo json_encode(["status" => "error", "message" => "Bu key movcud deyil."]);
+    echo json_encode(["status" => "error", "message" => "Key movcud deyil."]);
     exit;
 }
 
@@ -38,17 +48,48 @@ if ($key_info['expire'] > 0 && $key_info['expire'] < time()) {
 }
 
 $devices = $key_info['devices'];
+$device_exists = false;
+
+// Cihazın zaten kayıtlı olup olmadığını kontrol et
+foreach ($devices as $dev) {
+    $d_id = is_array($dev) ? ($dev['id'] ?? '') : $dev;
+    if ($d_id === $device_id) {
+        $device_exists = true;
+        break;
+    }
+}
 
 if (count($devices) == 0) {
-    $keys_data[$key]['devices'][] = $device_id;
+    // İlk cihaz kaydı (IP ve Model ile birlikte)
+    $keys_data[$key]['devices'][] = [
+        'id' => $device_id,
+        'model' => $device_model,
+        'ip' => $ip_address,
+        'date' => date('Y-m-d H:i:s')
+    ];
     file_put_contents($json_file, json_encode($keys_data, JSON_PRETTY_PRINT));
     file_put_contents($backup_file, json_encode($keys_data, JSON_PRETTY_PRINT));
     
     echo json_encode(["status" => "success", "message" => "Giris ugurludur. Cihaz qeyde alindi."]);
     exit;
 } 
-elseif (!in_array($device_id, $devices)) {
-    echo json_encode(["status" => "crash", "message" => "Bu key basqa cihazda aktivdir! 1 key yalniz 1 cihazda isleyir."]);
+elseif (!$device_exists) {
+    // Cihaz sınırı kontrolü
+    if (count($devices) >= $key_info['max_devices']) {
+        echo json_encode(["status" => "crash", "message" => "Bu key basqa cihazda aktivdir! Limit dolub."]);
+        exit;
+    }
+    // Yeni cihaz ekle
+    $keys_data[$key]['devices'][] = [
+        'id' => $device_id,
+        'model' => $device_model,
+        'ip' => $ip_address,
+        'date' => date('Y-m-d H:i:s')
+    ];
+    file_put_contents($json_file, json_encode($keys_data, JSON_PRETTY_PRINT));
+    file_put_contents($backup_file, json_encode($keys_data, JSON_PRETTY_PRINT));
+    
+    echo json_encode(["status" => "success", "message" => "Yeni cihaz qeyde alindi."]);
     exit;
 }
 
