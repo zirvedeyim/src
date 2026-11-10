@@ -1,4 +1,4 @@
-name: Build Dylib
+name: Build Dylib and Deb
 
 on:
   push:
@@ -12,41 +12,38 @@ jobs:
     steps:
       - name: Kodu Repodan Çek
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Theos ve SDK Kur
         run: |
-          # Theos'u kur
           git clone --recursive https://github.com/theos/theos.git $HOME/theos
           cd $HOME/theos
           
-          # iOS SDK'larını indir
+          # SDK indir
           curl -L -o sdks.tar.gz https://github.com/theos/sdks/archive/refs/heads/master.tar.gz
           tar -xzf sdks.tar.gz
           mv sdks-master sdks
           rm sdks.tar.gz
           
-          # ldid (imzalama araci) indir
+          # ldid indir
           curl -L -o /tmp/ldid https://github.com/ProcursusTeam/ldid/releases/latest/download/ldid_macosx_arm64
           chmod +x /tmp/ldid
           sudo mv /tmp/ldid /usr/local/bin/ldid
           
-          # Ortam degiskenlerini ayarla
           echo "THEOS=$HOME/theos" >> $GITHUB_ENV
           echo "$HOME/theos/bin" >> $GITHUB_PATH
 
-      - name: Projeyi Derle
+      - name: Projeyi Derle (Paket ve Dylib)
         run: |
           make clean
+          # 'make package' komutu hem .dylib'i derler hem de .deb paketini olusturur
           make package FINALPACKAGE=1
 
-      - name: Derlenen Dosyalari Yukle
+      - name: Derlenen Dosyalari Yukle (Hem Deb Hem Dylib)
         uses: actions/upload-artifact@v4
         with:
-          name: M7MD-Dylib-Output
-          # Hem .deb hem de .dylib dosyalarini paketler
+          name: M7MD-Outputs
+          # Hem packages klasorundeki debi hem de obj klasorundeki dylibi alir
           path: |
             packages/*.deb
             .theos/obj/**/*.dylib
-          if-no-files-found: warn
+          if-no-files-found: error
