@@ -1,25 +1,15 @@
 #import <JRMemory/JRMemory.h>
+#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+#import <mach/mach.h>
+#import <mach-o/dyld.h>
+#import <mach/mach_traps.h>
 
-%hook ClassName
-
-- (void)drawMenuWindow {
-    JRMemoryEngine *engine = [JRMemoryEngine sharedInstance];
-    AddrRange range = {0x000000000, 0x2000000000};
-
-    float searchValue1 = 10;
-    [engine JRScanMemory:range withValue:&searchValue1 type:JR_Search_Type_Float];
-    
-    float nearbyValue1 = 45;
-    [engine JRNearBySearch:0x100 withValue:&nearbyValue1 type:JR_Search_Type_Float];
-    
-    float modify1 = 500;
-    NSArray *results1 = [engine getAllResults];
-    for (NSValue *result in results1) {
-        if (result != nil) {
-            [engine JRWriteMemory:[result unsignedLongLongValue] withValue:&modify1 type:JR_Search_Type_Float];
-        }
-    }
-}
+// --- YENİ EKLENEN KEY VE BUTON SİSTEMİ İMPORTLARI ---
+#import "KeySystem.mm"
+#import "View/FloatView.h" 
+// Eğer ModuleControl hatası alırsan şu satırı aç:
+// #import "Menux/Menu.h" 
 
 //**********************************************//
 //**This Header File is used in combination****//
@@ -31,22 +21,10 @@
 //**Credits: Razzile & HackJack**//
 //****************************************//
 
-#import <Foundation/Foundation.h>
-#import <mach/mach.h>
-#import <mach-o/dyld.h>
-#import <mach/mach_traps.h>
-
 // Global variables to store the state of CheckBoxes
 bool LockStatus = false;
 bool SpeedPlayer = false;
 
-/*
-This Function checks if the Application has ASLR enabled.
-It gets the mach_header of the Image at Index 0.
-It then checks for the MH_PIE flag. If it is there, it returns TRUE.
-Parameters: nil
-Return: Wether it has ASLR or not
-*/
 bool hasASLR() {
     const struct mach_header *mach;
     mach = _dyld_get_image_header(0);
@@ -58,20 +36,10 @@ bool hasASLR() {
     }
 }
 
-/*
-This Function gets the vmaddr slide of the Image at Index 0.
-Parameters: nil
-Return: the vmaddr slide
-*/
 long long get_slide() {
     return _dyld_get_image_vmaddr_slide(0);
 }
 
-/*
-This Function calculates the Address if ASLR is enabled or returns the normal offset.
-Parameters: The Original Offset
-Return: Either the Offset or the New calculated Offset if ASLR is enabled
-*/
 long long calculateAddress(long long offset) {
     if (hasASLR()) {
         long long slide = get_slide();
@@ -81,12 +49,6 @@ long long calculateAddress(long long offset) {
     }
 }
 
-/*
-This function calculates the size of the data passed as an argument.
-It returns 1 if 4 bytes and 0 if 2 bytes
-Parameters: data to be written
-Return: True = 4 bytes/higher or False = 2 bytes
-*/
 bool getType(unsigned int data) {
     int a = data & 0xffff8000;
     int b = a + 0x00008000;
@@ -94,27 +56,16 @@ bool getType(unsigned int data) {
     return c;
 }
 
-/*
-This is the main Function. This is where the writing takes place.
-It declares the port as mach_task_self, calculates the offset.
-Then it changes the Protections at the offset to be able to write to it.
-After that it sets the Protections back so the Apps runs as before
-Then it vm_writes either 4 Byte or 2 to the address.
-Parameters: the address and the data to be written
-Return: True = Success or False = Failed
-*/
 bool vm_writeData(long long offset, unsigned int data) {
     kern_return_t err;
     mach_port_t port = mach_task_self();
     long long address = calculateAddress(offset);
 
-    // Allow writing to memory
     err = vm_protect(port, (vm_address_t)address, sizeof(data), NO, VM_PROT_READ | VM_PROT_WRITE | VM_PROT_COPY);
     if (err != KERN_SUCCESS) {
         return FALSE;
     }
 
-    // Write data
     if(getType(data)) {
         data = CFSwapInt32(data);
         err = vm_write(port, (vm_address_t)address, (vm_offset_t)&data, sizeof(data));
@@ -128,16 +79,11 @@ bool vm_writeData(long long offset, unsigned int data) {
         return FALSE;
     }
     
-    // Restore original protections
     err = vm_protect(port, (vm_address_t)address, sizeof(data), NO, VM_PROT_READ | VM_PROT_EXECUTE);
 
     return TRUE;
 }
 
-/*
-Function to apply the LockStatus patch based on the CheckBox state.
-Parameters: state (TRUE to enable, FALSE to disable)
-*/
 void setLockStatus(bool state) {
     LockStatus = state;
     if (LockStatus) {
@@ -148,16 +94,10 @@ void setLockStatus(bool state) {
             NSLog(@"Failed to enable LockStatus");
         }
     } else {
-        // Optional: Revert to original value if needed
-        // bool success = vm_writeData(0x102CA170C, original_value);
         NSLog(@"LockStatus disabled");
     }
 }
 
-/*
-Function to apply the SpeedPlayer patch based on the CheckBox state.
-Parameters: state (TRUE to enable, FALSE to disable)
-*/
 void setSpeedPlayer(bool state) {
     SpeedPlayer = state;
     if (SpeedPlayer) {
@@ -168,13 +108,45 @@ void setSpeedPlayer(bool state) {
             NSLog(@"Failed to enable SpeedPlayer");
         }
     } else {
-        // Optional: Revert to original value if needed
-        // bool success = vm_writeData(0x102C10D84, original_value);
         NSLog(@"SpeedPlayer disabled");
     }
 }
 
-// Example usage with UI (for reference)
+// ==========================================
+// YENİ EKLENEN KISIM: KEY VE BUTON BAŞLATICI
+// ==========================================
+%ctor {
+    // 1. Oyun açıldıktan 5 saniye sonra Key Menüsünü aç
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        showKeyMenu(); 
+    });
+    
+    // 2. Key doğrulandığında (StartHack sinyali geldiğinde) FloatView butonunu ekle
+    [[NSNotificationCenter defaultCenter] addObserverForName:@"StartHack" object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull note) {
+        
+        // Butonu oluştur (Eğer ModuleControl tanımlı değilse burada hata verebilir)
+        ModuleControl *control = [[ModuleControl alloc] init]; 
+        
+        FloatView *floatBtn = [FloatView sharedInstance:control];
+        
+        // Butonun ekrandaki boyutu ve yeri (Sol üstte 60x60 boyutunda)
+        floatBtn.frame = CGRectMake(10, 150, 60, 60); 
+        
+        // Oyunun ana penceresine butonu ekle
+        UIWindow *window = [UIApplication sharedApplication].keyWindow;
+        if (window) {
+            [window addSubview:floatBtn];
+            NSLog(@"[M7MD] Key dogrulandi, buton basariyla eklendi!");
+        } else {
+            NSLog(@"[M7MD] Pencere bulunamadi, buton eklenemedi!");
+        }
+    }];
+}
+
+// ==========================================
+// ORİJİNAL SINIFLAR (Aynen korundu)
+// ==========================================
+
 @interface TweakViewController : UIViewController
 @property (nonatomic, strong) UISwitch *lockStatusSwitch;
 @property (nonatomic, strong) UISwitch *speedPlayerSwitch;
@@ -185,15 +157,12 @@ void setSpeedPlayer(bool state) {
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    // Create LockStatus Switch
     self.lockStatusSwitch = [[UISwitch alloc] init];
     [self.lockStatusSwitch addTarget:self action:@selector(lockStatusChanged:) forControlEvents:UIControlEventValueChanged];
     
-    // Create SpeedPlayer Switch
     self.speedPlayerSwitch = [[UISwitch alloc] init];
     [self.speedPlayerSwitch addTarget:self action:@selector(speedPlayerChanged:) forControlEvents:UIControlEventValueChanged];
     
-    // Add switches to view (layout code omitted for brevity)
     [self.view addSubview:self.lockStatusSwitch];
     [self.view addSubview:self.speedPlayerSwitch];
 }
