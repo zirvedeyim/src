@@ -54,6 +54,7 @@ if (isset($_POST['login'])) {
     }
 }
 
+// GİRİŞ EKRANI TASARIMI
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     ?>
     <!DOCTYPE html>
@@ -62,62 +63,44 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
         <meta charset="UTF-8">
         <title>Login — DARK IOS</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-            :root{
-                --bg:#f9fafb; --surface:#ffffff; 
-                --border:#e5e7eb; --text:#111827; --text-dim:#6b7280;
-                --accent:#000000; --accent-hover:#374151;
-                --danger:#ef4444;
+            * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+            body {
+                background-color: #050505;
+                background-image: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #000 80%);
+                height: 100vh; display: flex; justify-content: center; align-items: center; color: #fff;
             }
-            *{box-sizing:border-box; font-family: 'Inter', sans-serif;}
-            body{
-                background: var(--bg); color:var(--text);
-                display:flex; justify-content:center; align-items:center;
-                min-height:100vh; margin:0; padding:20px;
+            .login-box {
+                background: rgba(20, 20, 25, 0.7);
+                backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+                padding: 50px 40px; border-radius: 24px; width: 100%; max-width: 420px;
+                border: 1px solid rgba(255,255,255,0.05);
+                box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+                text-align: center;
             }
-            .login-box{
-                background: var(--surface); padding:40px;
-                border:1px solid var(--border); border-radius:16px;
-                width:100%; max-width:400px;
-                box-shadow:0 10px 25px rgba(0,0,0,0.05);
+            .login-box h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; letter-spacing: 1px; }
+            .login-box .sub { color: #888; font-size: 14px; margin-bottom: 30px; }
+            .input-group { margin-bottom: 20px; text-align: left; }
+            .input-group label { display: block; font-size: 12px; font-weight: 600; color: #aaa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
+            .input-group input {
+                width: 100%; padding: 16px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+                color: #fff; border-radius: 12px; font-size: 15px; outline: none; transition: all 0.3s;
             }
-            .login-box h2{ margin:0 0 8px; font-size:24px; font-weight:700; text-align:center;}
-            .login-box .sub{color:var(--text-dim); font-size:14px; margin-bottom:30px; text-align:center;}
-            .input-group { margin-bottom: 16px; }
-            .input-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
-            .input-group input{
-                width:100%; padding:12px 14px;
-                background: var(--surface); border:1px solid var(--border);
-                color:var(--text); border-radius:8px; font-size:14px;
-                transition:border .2s; outline: none;
+            .input-group input:focus { border-color: #60a5fa; background: rgba(0,0,0,0.6); box-shadow: 0 0 15px rgba(96,165,250,0.1); }
+            button.btn-login {
+                width: 100%; padding: 16px; margin-top: 10px; background: #fff; color: #000;
+                border: none; font-weight: 700; font-size: 15px; border-radius: 12px; cursor: pointer;
+                transition: transform 0.2s, box-shadow 0.2s;
             }
-            .input-group input:focus{border-color:var(--accent);}
-            .password-wrapper { position: relative; display: flex; align-items: center; }
-            .password-wrapper input { padding-right: 40px; }
-            .toggle-password {
-                position: absolute; right: 12px; cursor: pointer;
-                color: var(--text-dim); background: none; border: none; padding: 0;
-            }
-            .toggle-password svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
-            button.btn-login{
-                width:100%; padding:12px; margin-top: 10px; background: var(--accent);
-                color:#fff; border:none; font-weight:600; font-size:14px;
-                border-radius:8px; cursor:pointer; transition:background .2s;
-            }
-            button.btn-login:hover{background: var(--accent-hover);}
-            .error{
-                color:var(--danger); font-size:13px; font-weight: 500;
-                background:#fef2f2; padding:12px;
-                border-radius:8px; margin-bottom:20px;
-                border:1px solid #fecaca; text-align: center;
-            }
+            button.btn-login:hover { box-shadow: 0 0 20px rgba(255,255,255,0.2); transform: scale(1.02); }
+            .error { color: #ff4444; font-size: 13px; background: rgba(255, 68, 68, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid rgba(255, 68, 68, 0.2); }
         </style>
     </head>
     <body>
         <div class="login-box">
-            <h2>Sign In</h2>
-            <div class="sub">DARK IOS Admin Panel</div>
+            <h2>DARK IOS</h2>
+            <div class="sub">Sign in to Admin Panel</div>
             <?php if(isset($login_error)) echo "<div class='error'>$login_error</div>"; ?>
             <form method="POST">
                 <div class="input-group">
@@ -126,29 +109,11 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
                 </div>
                 <div class="input-group">
                     <label>Password</label>
-                    <div class="password-wrapper">
-                        <input type="password" name="password" id="passwordInput" placeholder="Enter password" required>
-                        <button type="button" class="toggle-password" onclick="togglePassword()">
-                            <svg id="eyeIcon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        </button>
-                    </div>
+                    <input type="password" name="password" placeholder="Enter password" required>
                 </div>
                 <button type="submit" name="login" class="btn-login">Sign In</button>
             </form>
         </div>
-        <script>
-            function togglePassword() {
-                var input = document.getElementById("passwordInput");
-                var icon = document.getElementById("eyeIcon");
-                if (input.type === "password") {
-                    input.type = "text";
-                    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
-                } else {
-                    input.type = "password";
-                    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
-                }
-            }
-        </script>
     </body>
     </html>
     <?php
@@ -224,232 +189,249 @@ function key_status_badge($v) {
 }
 
 function key_time_left($v) {
-    if ($v['expire'] == 0) return '<span style="color:var(--text-dim);">Lifetime</span>';
+    if ($v['expire'] == 0) return '<span style="color:#a78bfa;">Lifetime</span>';
     $diff = $v['expire'] - time();
-    if ($diff <= 0) return '<span style="color:var(--danger);">Expired</span>';
+    if ($diff <= 0) return '<span style="color:#ef4444;">Expired</span>';
     $days = ceil($diff / 86400);
-    return '<span style="color:var(--text-dim);">' . $days . ' days left</span>';
+    return '<span style="color:#9ca3af;">' . $days . ' days left</span>';
 }
 ?>
+
+<!-- ANA PANEL TASARIMI -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin — DARK IOS</title>
+    <title>DARK IOS — Admin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        :root{
-            --bg:#e5e7eb; --window-bg:#ffffff; --sidebar-bg:#f9fafb;
-            --surface:#ffffff; --surface-2:#f3f4f6;
-            --border:#e5e7eb; --text:#111827; --text-dim:#6b7280;
-            --accent:#000000; --success:#10b981; --danger:#ef4444; --warning:#f59e0b;
+        :root {
+            --bg: #050505; --panel: #0f0f13; --border: rgba(255,255,255,0.08);
+            --text: #ffffff; --text-dim: #888; --accent: #60a5fa;
+            --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
         }
-        *{box-sizing:border-box; font-family: 'Inter', sans-serif;}
-        body{background: var(--bg); color:var(--text); margin:0; padding: 0; height: 100vh; display: flex;}
-        .desktop-window {width: 100%; height: 100vh; background: var(--window-bg); display: flex; overflow: hidden; position: relative;}
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
         
-        .sidebar {width: 260px; background: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 0;}
-        .sidebar-header {padding: 0 24px 24px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); margin-bottom: 16px;}
-        .sidebar-header .logo-box {width: 32px; height: 32px; background: #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px;}
-        .sidebar-header h2 {margin: 0; font-size: 18px; font-weight: 700; color: var(--text);}
+        /* Yan Menü (Sidebar) */
+        .sidebar { width: 260px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 20px; }
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding: 0 10px;}
+        .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #60a5fa, #a78bfa); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; color: #000; }
+        .logo-text { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+        .nav-item { padding: 14px 16px; border-radius: 12px; color: var(--text-dim); font-size: 14px; font-weight: 500; cursor: pointer; margin-bottom: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 10px; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+        .nav-item.active { background: rgba(96, 165, 250, 0.1); color: var(--accent); border: 1px solid rgba(96, 165, 250, 0.2); }
         
-        .nav-item {padding: 12px 24px; color: var(--text-dim); font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 10px; transition: all 0.2s;}
-        .nav-item:hover {color: var(--text); background: var(--surface-2);}
-        .nav-item.active {background: var(--surface-2); color: var(--text); border-right: 3px solid var(--accent);}
+        /* Ana İçerik */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: radial-gradient(circle at 100% 0%, #111 0%, #050505 50%); }
+        .topbar { height: 80px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; backdrop-filter: blur(10px); }
+        .breadcrumbs { font-size: 14px; color: var(--text-dim); font-weight: 500; }
+        .breadcrumbs span { color: var(--text); }
         
-        .main-content {flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--surface);}
-        .topbar {height: 70px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px;}
-        .breadcrumbs {font-size: 14px; color: var(--text-dim); display: flex; align-items: center; gap: 10px;}
-        .breadcrumbs span {color: var(--text); font-weight: 600;}
-        
-        .topbar-actions {display: flex; align-items: center; gap: 16px;}
-        .search-box {position: relative;}
-        .search-box input {padding: 10px 14px 10px 40px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-size: 14px; width: 300px; outline: none; transition: all 0.2s;}
-        .search-box input:focus {border-color: var(--text-dim); box-shadow: 0 0 0 3px rgba(0,0,0,0.05);}
-        .search-box svg {position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; stroke: var(--text-dim); fill: none; stroke-width: 2;}
-        
-        .btn-logout {padding: 10px 18px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.2s;}
-        .btn-logout:hover {background: var(--surface-2);}
+        .topbar-actions { display: flex; align-items: center; gap: 16px; }
+        .search-box input { padding: 12px 20px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 14px; width: 250px; outline: none; transition: all 0.3s; }
+        .search-box input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(96, 165, 250, 0.1); }
+        .btn-logout { padding: 12px 20px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+        .btn-logout:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
 
-        .content {padding: 32px; overflow-y: auto; flex: 1;}
-        .form-card {border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 32px; background: var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,0.02);}
-        .form-card h3 {margin: 0 0 20px; font-size: 16px; font-weight: 600;}
+        .content { padding: 40px; overflow-y: auto; flex: 1; }
         
-        .form-row{display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px;}
-        .form-row > *{flex:1; min-width:200px;}
-        input, select{width:100%; padding:12px 16px; background:var(--surface); border:1px solid var(--border); color:var(--text); border-radius:8px; font-size:14px; transition:all .2s; outline: none;}
-        input:focus, select:focus{ border-color: var(--text-dim); }
-        button.btn-primary {padding: 12px 24px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: opacity .2s; width: 100%;}
-        button.btn-primary:hover {opacity: 0.9;}
+        /* Form Kartı */
+        .form-card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .form-card h3 { margin-bottom: 20px; font-size: 18px; font-weight: 600; color: #fff; }
+        .form-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+        .form-row > * { flex: 1; min-width: 200px; }
+        input, select { width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: var(--text); border-radius: 10px; font-size: 14px; outline: none; transition: border 0.2s; }
+        input:focus, select:focus { border-color: var(--accent); }
+        select option { background: var(--panel); }
+        
+        button.btn-primary { padding: 14px 24px; background: var(--accent); color: #000; border: none; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; width: 100%; transition: all 0.2s; }
+        button.btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 5px 15px rgba(96,165,250,0.3); }
 
-        .table-container {width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface);}
-        table {width: 100%; border-collapse: collapse; font-size: 14px;}
-        th {text-align: left; padding: 16px 20px; border-bottom: 1px solid var(--border); color: var(--text-dim); font-weight: 500; background: var(--surface-2); font-size: 13px;}
-        td {padding: 16px 20px; border-bottom: 1px solid var(--border); vertical-align: middle;}
-        tr:last-child td {border-bottom: none;}
-        tr:hover td {background: #fafafa;}
+        /* Tablo */
+        .table-container { border: 1px solid var(--border); border-radius: 16px; background: var(--panel); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { text-align: left; padding: 18px 24px; border-bottom: 1px solid var(--border); color: var(--text-dim); font-weight: 500; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;}
+        td { padding: 18px 24px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
         
-        .badge {padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; text-align: center;}
-        .badge-success {background: #ecfdf5; color: var(--success);}
-        .badge-danger {background: #fef2f2; color: var(--danger);}
-        .badge-muted {background: #f3f4f6; color: var(--text-dim);}
+        /* Durum Etiketleri (Badges) */
+        .badge { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; display: inline-block; }
+        .badge-success { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .badge-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .badge-muted { background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid var(--border); }
 
-        .action-btns {display: flex; gap: 8px;}
-        .action-btns form {display: inline;}
-        .action-btns button {padding: 8px 12px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); cursor: pointer; transition: all 0.2s;}
-        .action-btns button:hover {background: var(--surface-2); color: var(--text);}
-        .action-btns .btn-danger {color: var(--danger);}
-        .action-btns .btn-warning {color: var(--warning);}
-        .action-btns .btn-success {color: var(--success);}
+        /* Aksiyon Butonları */
+        .action-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+        .action-btns form { display: inline; }
+        .action-btns button { padding: 8px 12px; font-size: 12px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: var(--text-dim); cursor: pointer; transition: all 0.2s; font-weight: 500;}
+        .action-btns button:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+        .action-btns .btn-danger { color: #ff6b6b; border-color: rgba(239,68,68,0.2); }
+        .action-btns .btn-danger:hover { background: rgba(239,68,68,0.1); }
+        .action-btns .btn-warning { color: var(--warning); border-color: rgba(245,158,11,0.2); }
+        .action-btns .btn-warning:hover { background: rgba(245,158,11,0.1); }
+        .action-btns .btn-success { color: var(--success); border-color: rgba(16,185,129,0.2); }
+        .action-btns .btn-success:hover { background: rgba(16,185,129,0.1); }
         
-        .key-code {font-family: monospace; font-weight: 600; color: var(--text); font-size: 14px;}
-        .key-note {color: var(--text-dim); font-size: 12px; margin-top: 4px;}
+        .key-code { font-family: monospace; font-weight: 600; color: var(--accent); font-size: 15px; }
+        .key-note { color: var(--text-dim); font-size: 12px; margin-top: 6px; }
+        
+        /* Modal */
+        #settingsModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--panel); padding: 40px; border-radius: 20px; width: 400px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .modal-content h3 { font-size: 20px; margin-bottom: 16px; }
+        .modal-content p { font-size: 14px; color: var(--text-dim); margin-bottom: 24px; }
     </style>
 </head>
 <body>
 
-    <div class="desktop-window">
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo-box">D</div>
-                <h2>DARK IOS</h2>
+    <div class="sidebar">
+        <div class="logo-area">
+            <div class="logo-icon">D</div>
+            <div class="logo-text">DARK IOS</div>
+        </div>
+        <a href="#" class="nav-item active">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+            API Keys
+        </a>
+        <a href="#" class="nav-item" onclick="document.getElementById('settingsModal').style.display='flex'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            Settings
+        </a>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+            <div class="breadcrumbs">Dashboard / <span>API Keys</span></div>
+            <div class="topbar-actions">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search keys or notes..." onkeyup="filterKeys()">
+                </div>
+                <a href="admin.php?action=logout" class="btn-logout">Logout</a>
             </div>
-            <a href="#" class="nav-item active">API Keys</a>
-            <a href="#" class="nav-item" onclick="document.getElementById('settingsModal').style.display='flex'">Settings</a>
         </div>
 
-        <div class="main-content">
-            <div class="topbar">
-                <div class="breadcrumbs">
-                    API Keys
-                </div>
-                <div class="topbar-actions">
-                    <div class="search-box">
-                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        <input type="text" id="searchInput" placeholder="Search keys..." onkeyup="filterKeys()">
+        <div class="content">
+            <!-- Yeni Key Oluşturma -->
+            <div class="form-card">
+                <h3>Create New Key</h3>
+                <form method="POST">
+                    <div class="form-row">
+                        <input type="text" name="note" placeholder="Note (username, etc.)">
+                        <input type="number" name="max_devices" value="1" min="1" placeholder="Max Devices">
                     </div>
-                    <a href="admin.php?action=logout" class="btn-logout">Logout</a>
-                </div>
+                    <div class="form-row">
+                        <select name="duration_type">
+                            <option value="1D">1 Day</option>
+                            <option value="7D">7 Days</option>
+                            <option value="30D">30 Days</option>
+                            <option value="LIFETIME">Lifetime</option>
+                            <option disabled>──────────</option>
+                            <option value="TEST_1D">1 Day (Tester)</option>
+                            <option value="TEST_7D">7 Days (Tester)</option>
+                            <option value="TEST_30D">30 Days (Tester)</option>
+                            <option value="TEST_LIFETIME">Lifetime (Tester)</option>
+                        </select>
+                        <input type="text" name="custom_key" placeholder="Custom Key (optional)">
+                    </div>
+                    <button type="submit" name="create_key" class="btn-primary">+ Generate Key</button>
+                </form>
             </div>
 
-            <div class="content">
-                <div class="form-card">
-                    <h3>Create New Key</h3>
-                    <form method="POST">
-                        <div class="form-row">
-                            <input type="text" name="note" placeholder="Note (username, etc.)">
-                            <input type="number" name="max_devices" value="1" min="1" placeholder="Max Devices">
-                        </div>
-                        <div class="form-row">
-                            <select name="duration_type">
-                                <option value="1D">1 Day</option>
-                                <option value="7D">7 Days</option>
-                                <option value="30D">30 Days</option>
-                                <option value="LIFETIME">Lifetime</option>
-                                <option disabled>──────────</option>
-                                <option value="TEST_1D">1 Day (Tester)</option>
-                                <option value="TEST_7D">7 Days (Tester)</option>
-                                <option value="TEST_30D">30 Days (Tester)</option>
-                                <option value="TEST_LIFETIME">Lifetime (Tester)</option>
-                            </select>
-                            <input type="text" name="custom_key" placeholder="Custom Key (optional)">
-                        </div>
-                        <button type="submit" name="create_key" class="btn-primary">+ Create Key</button>
-                    </form>
-                </div>
-
-                <div class="table-container">
-                    <?php if (count($keys_data) === 0): ?>
-                        <div style="text-align:center; padding:60px; color:var(--text-dim); font-size: 14px;">No keys generated yet.</div>
-                    <?php else: ?>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Key</th>
-                                    <th>Status</th>
-                                    <th>Duration</th>
-                                    <th>Devices</th>
-                                    <th>Actions</th>
+            <!-- Key Listesi -->
+            <div class="table-container">
+                <?php if (count($keys_data) === 0): ?>
+                    <div style="text-align:center; padding:60px; color:var(--text-dim); font-size: 15px;">No keys generated yet. Create your first key above.</div>
+                <?php else: ?>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>License Key</th>
+                                <th>Status</th>
+                                <th>Duration</th>
+                                <th>Devices</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="keysContainer">
+                            <?php foreach($keys_data as $k => $v): ?>
+                                <?php $is_banned = ($v['status'] == 'banned'); ?>
+                                <tr class="key-row" data-key="<?= htmlspecialchars(strtolower($k)) ?>" data-note="<?= htmlspecialchars(strtolower($v['note'])) ?>">
+                                    <td>
+                                        <div class="key-code"><?= htmlspecialchars($k) ?></div>
+                                        <?php if(!empty($v['note'])): ?>
+                                            <div class="key-note"><?= htmlspecialchars($v['note']) ?></div>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><?= key_status_badge($v) ?></td>
+                                    <td><?= key_time_left($v) ?></td>
+                                    <td><span style="font-weight:600; color:#fff;"><?= count($v['devices']) ?></span> / <?= $v['max_devices'] ?></td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="reset_hwid"><button type="submit" name="action_key" class="btn-warning">Reset HWID</button></form>
+                                            <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="block"><button type="submit" name="action_key" class="btn-danger"><?= $is_banned ? 'Unban' : 'Ban' ?></button></form>
+                                            <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="add_time"><button type="submit" name="action_key" class="btn-success">+1 Day</button></form>
+                                            <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="limit_inc"><button type="submit" name="action_key" class="btn-warning">+Dev</button></form>
+                                            <form method="POST" onsubmit="return confirm('Are you sure you want to delete this key?');"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="delete"><button type="submit" name="action_key" class="btn-danger">Delete</button></form>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody id="keysContainer">
-                                <?php foreach($keys_data as $k => $v): ?>
-                                    <?php $is_banned = ($v['status'] == 'banned'); ?>
-                                    <tr class="key-row" data-key="<?= htmlspecialchars(strtolower($k)) ?>" data-note="<?= htmlspecialchars(strtolower($v['note'])) ?>">
-                                        <td>
-                                            <div class="key-code"><?= htmlspecialchars($k) ?></div>
-                                            <?php if(!empty($v['note'])): ?>
-                                                <div class="key-note"><?= htmlspecialchars($v['note']) ?></div>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td><?= key_status_badge($v) ?></td>
-                                        <td><?= key_time_left($v) ?></td>
-                                        <td><?= count($v['devices']) ?> / <?= $v['max_devices'] ?></td>
-                                        <td>
-                                            <div class="action-btns">
-                                                <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="reset_hwid"><button type="submit" name="action_key" class="btn-warning">Reset</button></form>
-                                                <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="block"><button type="submit" name="action_key" class="btn-danger"><?= $is_banned ? 'Unban' : 'Ban' ?></button></form>
-                                                <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="add_time"><button type="submit" name="action_key" class="btn-success">+1D</button></form>
-                                                <form method="POST"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="limit_inc"><button type="submit" name="action_key" class="btn-warning">+Dev</button></form>
-                                                <form method="POST" onsubmit="return confirm('Delete this key?');"><input type="hidden" name="key_id" value="<?= htmlspecialchars($k) ?>"><input type="hidden" name="sub_action" value="delete"><button type="submit" name="action_key" class="btn-danger">Del</button></form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                        <div id="noResults" style="display:none; text-align:center; padding:40px; color:var(--text-dim); font-size: 14px;">No keys found matching your search.</div>
-                    <?php endif; ?>
-                </div>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    <div id="noResults" style="display:none; text-align:center; padding:40px; color:var(--text-dim); font-size: 15px;">No keys found matching your search.</div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
 
-<div id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
-    <div style="background:var(--surface); padding:32px; border-radius:12px; width:400px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
-        <h3 style="margin:0 0 16px; font-size:18px;">Settings</h3>
-        <p style="font-size:14px; color:var(--text-dim); margin-bottom:24px;">Manage your application settings here.</p>
-        
-        <div style="border-top:1px solid var(--border); padding-top:20px;">
-            <h4 style="margin:0 0 8px; font-size:14px; color:var(--danger);">Danger Zone</h4>
-            <p style="font-size:13px; color:var(--text-dim); margin-bottom:16px;">This action will permanently delete all keys. This cannot be undone.</p>
-            <form method="POST" onsubmit="return confirm('Are you sure you want to delete ALL keys?');">
-                <button type="submit" name="delete_all" style="background:var(--danger); color:#fff; border:none; padding:10px 16px; border-radius:8px; font-weight:600; cursor:pointer; width:100%;">Reset All Keys</button>
-            </form>
-        </div>
+    <!-- Settings Modal -->
+    <div id="settingsModal">
+        <div class="modal-content">
+            <h3>Settings</h3>
+            <p>Manage your application settings and data here.</p>
+            
+            <div style="border-top:1px solid var(--border); padding-top:24px;">
+                <h4 style="margin-bottom:12px; font-size:14px; color:var(--danger);">Danger Zone</h4>
+                <p style="margin-bottom:16px;">This will permanently delete all keys and reset the system.</p>
+                <form method="POST" onsubmit="return confirm('Are you absolutely sure? This will delete ALL keys!');">
+                    <button type="submit" name="delete_all" style="background:rgba(239, 68, 68, 0.1); color:var(--danger); border:1px solid rgba(239, 68, 68, 0.2); padding:12px 20px; border-radius:10px; font-weight:600; cursor:pointer; width:100%; transition:all 0.2s;">Reset All Keys</button>
+                </form>
+            </div>
 
-        <div style="margin-top:24px; text-align:right;">
-            <button type="button" onclick="document.getElementById('settingsModal').style.display='none'" style="background:var(--surface-2); border:1px solid var(--border); padding:8px 16px; border-radius:8px; cursor:pointer;">Close</button>
+            <div style="margin-top:24px; text-align:right;">
+                <button type="button" onclick="document.getElementById('settingsModal').style.display='none'" style="background:rgba(255,255,255,0.05); border:1px solid var(--border); color:#fff; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:500;">Close</button>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    function filterKeys() {
-        var input = document.getElementById('searchInput');
-        var filter = input.value.toLowerCase();
-        var rows = document.querySelectorAll('.key-row');
-        var visibleCount = 0;
-        rows.forEach(function(row) {
-            var keyName = row.getAttribute('data-key');
-            var noteName = row.getAttribute('data-note');
-            if (keyName.includes(filter) || noteName.includes(filter)) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-        var noRes = document.getElementById('noResults');
-        if(noRes) {
-            if (visibleCount === 0 && rows.length > 0) {
-                noRes.style.display = 'block';
-            } else {
-                noRes.style.display = 'none';
+    <script>
+        function filterKeys() {
+            var input = document.getElementById('searchInput');
+            var filter = input.value.toLowerCase();
+            var rows = document.querySelectorAll('.key-row');
+            var visibleCount = 0;
+            rows.forEach(function(row) {
+                var keyName = row.getAttribute('data-key');
+                var noteName = row.getAttribute('data-note');
+                if (keyName.includes(filter) || noteName.includes(filter)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            var noRes = document.getElementById('noResults');
+            if(noRes) {
+                if (visibleCount === 0 && rows.length > 0) {
+                    noRes.style.display = 'block';
+                } else {
+                    noRes.style.display = 'none';
+                }
             }
         }
-    }
-</script>
+    </script>
 </body>
 </html>
