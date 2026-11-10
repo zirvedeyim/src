@@ -6,7 +6,7 @@ $admin_pass = "wear5555.2013a";
 
 $json_file = "keys.json";
 $backup_file = "keys_backup.json";
-$config_file = "config.json"; // Global Stop/Ban durumu için
+$config_file = "config.json";
 
 if (!file_exists($json_file) && file_exists($backup_file)) { copy($backup_file, $json_file); }
 if (!file_exists($json_file)) { file_put_contents($json_file, json_encode([])); }
@@ -25,21 +25,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($global_stop) {
             foreach ($keys_data as $k => $v) {
-                if ($v['status'] !== 'banned') {
-                    $keys_data[$k]['status'] = 'global_banned';
-                }
+                if ($v['status'] !== 'banned') { $keys_data[$k]['status'] = 'global_banned'; }
             }
         } else {
             foreach ($keys_data as $k => $v) {
-                if ($v['status'] === 'global_banned') {
-                    $keys_data[$k]['status'] = 'active';
-                }
+                if ($v['status'] === 'global_banned') { $keys_data[$k]['status'] = 'active'; }
             }
         }
         file_put_contents($json_file, json_encode($keys_data, JSON_PRETTY_PRINT));
         file_put_contents($backup_file, json_encode($keys_data, JSON_PRETTY_PRINT));
-        header("Location: admin.php");
-        exit;
+        header("Location: admin.php"); exit;
     }
 
     if (isset($_POST['login'])) {
@@ -79,9 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $act = $_POST['sub_action'];
         if (isset($keys_data[$k])) {
             if ($act == 'delete') { unset($keys_data[$k]); }
-            elseif ($act == 'block') { 
-                $keys_data[$k]['status'] = ($keys_data[$k]['status'] == 'banned') ? ($global_stop ? 'global_banned' : 'active') : 'banned'; 
-            }
+            elseif ($act == 'block') { $keys_data[$k]['status'] = ($keys_data[$k]['status'] == 'banned') ? ($global_stop ? 'global_banned' : 'active') : 'banned'; }
             elseif ($act == 'reset_hwid') { $keys_data[$k]['devices'] = []; }
             elseif ($act == 'add_time') { if ($keys_data[$k]['expire'] > 0) $keys_data[$k]['expire'] += 86400; }
             file_put_contents($json_file, json_encode($keys_data, JSON_PRETTY_PRINT));
@@ -102,7 +95,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'logout') {
     unset($_SESSION['logged_in']); header("Location: admin.php"); exit;
 }
 
-// --- LOGIN EKRANI KONTROLÜ ---
+// --- LOGIN EKRANI ---
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     ?>
     <!DOCTYPE html>
@@ -147,7 +140,15 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     <?php
     exit;
 }
-// --- LOGIN EKRANI BİTİŞİ ---
+
+// İSTATİSTİKLERİ HESAPLA
+$total_keys_count = count($keys_data);
+$total_online_devices = 0;
+foreach ($keys_data as $k => $v) {
+    if (isset($v['devices']) && is_array($v['devices'])) {
+        $total_online_devices += count($v['devices']);
+    }
+}
 
 function key_status_badge($v) {
     if ($v['status'] == 'banned') return '<span class="badge badge-red">Manually Banned</span>';
@@ -207,7 +208,11 @@ function key_time_left($v) {
         /* KARTLAR VE FORMLAR */
         .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .card-title { font-size: 18px; font-weight: 600; }
+        .card-title { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 15px; }
+        
+        /* İSTATİSTİK BADGE */
+        .stats-badge { background: #eef2ff; color: var(--primary); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #c7d2fe; display: flex; gap: 10px; align-items: center; }
+        .stats-badge span { display: flex; align-items: center; gap: 4px; }
         
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
         .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
@@ -247,17 +252,23 @@ function key_time_left($v) {
         .action-btn.info { color: var(--primary); border-color: #c7d2fe; }
         .action-btn.info:hover { background: #e0e7ff; }
 
-        /* GLOBAL STOP KUTUSU (Sadece Banned Keys içinde) */
+        /* GLOBAL STOP KUTUSU */
         .stop-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
         .stop-title { font-size: 16px; font-weight: 600; color: var(--danger); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;}
         .stop-desc { font-size: 13px; color: #7f1d1d; }
+
+        /* CİHAZ LİSTESİ (INFO SEKMESİ) */
+        .device-key-block { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; background: #fff; }
+        .device-key-header { padding: 16px 20px; background: #f8fafc; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; font-weight: 600; }
+        .device-key-header:hover { background: #f1f5f9; }
+        .device-key-title { font-family: monospace; color: var(--primary); font-size: 15px; display: flex; align-items: center; gap: 10px;}
+        .device-count-badge { background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-family: 'Inter', sans-serif;}
+        .device-list-content { display: none; padding: 20px; border-top: 1px solid var(--border); background: #fff; }
         
-        /* CİHAZ LİSTESİ (Info Sekmesi) */
-        .device-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-        .device-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-        .device-header { font-weight: 700; color: var(--primary); margin-bottom: 12px; font-size: 16px; display: flex; align-items: center; gap: 8px;}
-        .device-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--border); }
-        .device-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+        .device-item { padding: 16px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; background: #f8fafc; }
+        .device-item:last-child { margin-bottom: 0; }
+        .device-item-title { font-weight: 700; color: var(--text); margin-bottom: 12px; font-size: 14px; display: flex; justify-content: space-between;}
+        .device-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
         .device-row span:first-child { color: var(--text-muted); }
         .device-row span:last-child { font-weight: 600; color: var(--text); }
 
@@ -347,7 +358,15 @@ function key_time_left($v) {
 
             <div class="card">
                 <div class="card-header">
-                    <div class="card-title">Active Keys</div>
+                    <div class="card-title">
+                        Active Keys
+                        <!-- İSTATİSTİK BADGE (Kırmızı yere) -->
+                        <div class="stats-badge">
+                            <span>🟢 Online Devices: <?= $total_online_devices ?></span>
+                            <span style="color:#cbd5e1;">|</span>
+                            <span>📦 Total Keys: <?= $total_keys_count ?></span>
+                        </div>
+                    </div>
                     <input type="text" id="searchInput" placeholder="Search keys..." class="form-control" style="width: 250px;" onkeyup="filterKeys()">
                 </div>
                 <div class="table-responsive">
@@ -440,38 +459,56 @@ function key_time_left($v) {
             </div>
         </div>
 
-        <!-- SEKME 3: CİHAZ BİLGİLERİ (INFO) -->
+        <!-- SEKME 3: CİHAZ BİLGİLERİ (INFO) - ACCORDION LİSTE -->
         <div id="infoTab" class="content-area">
             <div class="card">
                 <div class="card-header">
-                    <div class="card-title">All Registered Devices</div>
+                    <div class="card-title">Devices (Grouped by Key)</div>
                 </div>
-                <div class="device-grid">
+                <div>
                     <?php 
-                    $hasDevices = false;
+                    $hasAnyDevice = false;
                     foreach($keys_data as $k => $v): 
                         if (!empty($v['devices'])):
-                            foreach($v['devices'] as $dev):
-                                $hasDevices = true;
-                                $devId = (is_array($dev)) ? ($dev['id'] ?? 'Unknown') : $dev;
-                                $devModel = (is_array($dev)) ? ($dev['model'] ?? "Unknown Device") : "Unknown Device"; 
-                                $devIP = (is_array($dev)) ? ($dev['ip'] ?? "Unknown IP") : "Unknown IP";
-                                $devDate = (is_array($dev)) ? ($dev['date'] ?? "N/A") : "N/A";
-                                $devBattery = (is_array($dev)) ? ($dev['battery'] ?? "Unknown") : "Unknown";
+                            $hasAnyDevice = true;
+                            $deviceCount = count($v['devices']);
                     ?>
-                                <div class="device-card">
-                                    <div class="device-header">📱 <?= htmlspecialchars($devModel) ?></div>
-                                    <div class="device-row"><span>Linked Key</span> <span style="font-family:monospace; color:var(--primary);"><?= htmlspecialchars($k) ?></span></div>
-                                    <div class="device-row"><span>HWID</span> <span><?= htmlspecialchars($devId) ?></span></div>
-                                    <div class="device-row"><span>IP Address</span> <span><?= htmlspecialchars($devIP) ?></span></div>
-                                    <div class="device-row"><span>Battery</span> <span style="color:var(--success);"><?= htmlspecialchars($devBattery) ?></span></div>
-                                    <div class="device-row"><span>Last Login</span> <span><?= htmlspecialchars($devDate) ?></span></div>
+                            <div class="device-key-block">
+                                <!-- Tıklanabilir Başlık -->
+                                <div class="device-key-header" onclick="toggleDeviceList(this)">
+                                    <div class="device-key-title">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+                                        <?= htmlspecialchars($k) ?>
+                                        <span class="device-count-badge"><?= $deviceCount ?> Device(s)</span>
+                                    </div>
+                                    <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                                 </div>
+                                
+                                <!-- Açılır İçerik (Cihazlar) -->
+                                <div class="device-list-content">
+                                    <?php foreach($v['devices'] as $index => $dev): 
+                                        $devId = (is_array($dev)) ? ($dev['id'] ?? 'Unknown') : $dev;
+                                        $devModel = (is_array($dev)) ? ($dev['model'] ?? "Unknown Device") : "Unknown Device"; 
+                                        $devIP = (is_array($dev)) ? ($dev['ip'] ?? "Unknown IP") : "Unknown IP";
+                                        $devDate = (is_array($dev)) ? ($dev['date'] ?? "N/A") : "N/A";
+                                        $devBattery = (is_array($dev)) ? ($dev['battery'] ?? "Unknown") : "Unknown";
+                                    ?>
+                                        <div class="device-item">
+                                            <div class="device-item-title">
+                                                <span># <?= $index + 1 ?> — <?= htmlspecialchars($devModel) ?></span>
+                                                <span style="color:var(--success);">🔋 <?= htmlspecialchars($devBattery) ?></span>
+                                            </div>
+                                            <div class="device-row"><span>HWID</span> <span><?= htmlspecialchars($devId) ?></span></div>
+                                            <div class="device-row"><span>IP Address</span> <span><?= htmlspecialchars($devIP) ?></span></div>
+                                            <div class="device-row"><span>Last Login</span> <span><?= htmlspecialchars($devDate) ?></span></div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
                     <?php 
-                            endforeach;
                         endif;
                     endforeach; 
-                    if (!$hasDevices) echo '<div style="color:var(--text-muted); grid-column: 1/-1; text-align: center; padding: 40px;">No devices registered yet.</div>';
+                    if (!$hasAnyDevice) echo '<div style="color:var(--text-muted); text-align: center; padding: 40px;">No devices have logged in yet.</div>';
                     ?>
                 </div>
             </div>
@@ -522,6 +559,20 @@ function key_time_left($v) {
                 } else { row.style.display = 'none'; }
             });
             document.getElementById('noResults').style.display = (visibleCount === 0 && rows.length > 0) ? 'block' : 'none';
+        }
+
+        // Device Info Sekmesi İçin Accordion (Aç/Kapa) Mantığı
+        function toggleDeviceList(headerElement) {
+            var content = headerElement.nextElementSibling;
+            var chevron = headerElement.querySelector('.chevron');
+            
+            if (content.style.display === "block") {
+                content.style.display = "none";
+                chevron.style.transform = "rotate(0deg)";
+            } else {
+                content.style.display = "block";
+                chevron.style.transform = "rotate(180deg)";
+            }
         }
     </script>
 </body>
