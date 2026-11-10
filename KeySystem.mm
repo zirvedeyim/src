@@ -2,12 +2,20 @@
 #import <Foundation/Foundation.h>
 #import <WebKit/WebKit.h>
 
+// Cihazın benzersiz ID'sini almak için (api.php'deki device_id kontrolü için)
 NSString* getDeviceID() {
     NSString *uuid = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
     return uuid ? uuid : @"unknown_device";
 }
 
-// Sunucudan gelen cevabı okuyan fonksiyon
+// Cihaz modelini almak için (Örn: iPhone 13 Pro)
+NSString* getDeviceModelName() {
+    NSString *model = [[UIDevice currentDevice] model];
+    NSString *name = [[UIDevice currentDevice] name];
+    return [NSString stringWithFormat:@"%@ (%@)", model, name];
+}
+
+// api.php'ye bağlanıp gelen cevabı (success, error, crash) okuyan fonksiyon
 NSDictionary* validateKeyFromServer(NSString *enteredKey) {
     NSString *urlString = @"https://a-g9eo.onrender.com/api.php";
     NSURL *url = [NSURL URLWithString:urlString];
@@ -18,7 +26,8 @@ NSDictionary* validateKeyFromServer(NSString *enteredKey) {
     
     NSDictionary *jsonBody = @{
         @"key": enteredKey,
-        @"device_id": getDeviceID()
+        @"device_id": getDeviceID(),
+        @"device_model": getDeviceModelName() // Model bilgisini de yolluyoruz
     };
     
     NSError *error;
@@ -35,18 +44,16 @@ NSDictionary* validateKeyFromServer(NSString *enteredKey) {
     return responseDict;
 }
 
-// Küresel değişken (Aktif keyi ve zamanlayıcıyı tutmak için)
 static NSString *globalActiveKey = nil;
 static NSTimer *globalHeartbeatTimer = nil;
 
-// Arka planda keyin hala geçerli olup olmadığını kontrol eden fonksiyon
 void startHeartbeatCheck() {
     if (globalHeartbeatTimer) {
         [globalHeartbeatTimer invalidate];
         globalHeartbeatTimer = nil;
     }
     
-    // Her 30 saniyede bir kontrol et
+    // 30 saniyede bir kontrol
     globalHeartbeatTimer = [NSTimer scheduledTimerWithTimeInterval:30.0 repeats:YES block:^(NSTimer * _Nonnull timer) {
         if (!globalActiveKey) return;
         
@@ -54,17 +61,15 @@ void startHeartbeatCheck() {
             NSDictionary *response = validateKeyFromServer(globalActiveKey);
             NSString *status = response[@"status"];
             
-            // Eğer key banlandıysa, silindiyse veya süresi bittiyse
             if (![status isEqualToString:@"success"]) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    NSLog(@"[M7MD] Key artik gecersiz! (Ban/Expired/Deleted) Oyundan atiliyor...");
-                    exit(0); // Anında oyundan at
+                    NSLog(@"[M7MD] Key artik gecersiz! Oyundan atiliyor...");
+                    exit(0); 
                 });
             }
         });
     }];
 }
-
 
 @interface KeyWebViewController : UIViewController <WKScriptMessageHandler>
 @property (nonatomic, strong) WKWebView *webView;
@@ -89,7 +94,6 @@ void startHeartbeatCheck() {
     self.webView.opaque = NO;
     self.webView.scrollView.scrollEnabled = NO;
     
-    // --- HTML TASARIMI ---
     NSString *htmlString = @"<!DOCTYPE html>"
     "<html lang='en'>"
     "<head>"
@@ -168,17 +172,14 @@ void startHeartbeatCheck() {
     
     [self.webView loadHTMLString:htmlString baseURL:nil];
     
-    // 30 Saniye Zaman Aşımı (Boş durursa at)
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(30.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         if (self.presentingViewController) {
             [self dismissViewControllerAnimated:YES completion:nil];
-            NSLog(@"[M7MD] 30 saniye doldu, oyundan atiliyor...");
             exit(0); 
         }
     });
 }
 
-// JavaScript'ten gelen mesajı yakaladığımız yer
 - (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
     if ([message.name isEqualToString:@"keySubmit"]) {
         NSString *enteredKey = message.body;
@@ -189,14 +190,12 @@ void startHeartbeatCheck() {
             NSString *msg = response[@"message"];
             
             if ([status isEqualToString:@"success"]) {
-                globalActiveKey = enteredKey; // Başarılı keyi global değişkene kaydet
+                globalActiveKey = enteredKey; 
                 [self dismissViewControllerAnimated:YES completion:^{
                     [[NSNotificationCenter defaultCenter] postNotificationName:@"StartHack" object:nil];
-                    // Sunucuyu periyodik olarak kontrol eden zamanlayıcıyı başlat
                     startHeartbeatCheck();
                 }];
             } else {
-                // HATA MESAJLARINI İNGİLİZCE EŞLEŞTİRME
                 NSString *errorString = @"Key not found.";
                 
                 if ([msg containsString:@"bloklandi"] || [msg containsString:@"banned"]) {
@@ -205,8 +204,8 @@ void startHeartbeatCheck() {
                     errorString = @"Key expired.";
                 } else if ([msg containsString:@"movcud deyil"] || [msg containsString:@"silinmisdir"]) {
                     errorString = @"Key deleted.";
-                } else if ([msg containsString:@"cihazda aktivdir"]) {
-                    errorString = @"Key active on another device.";
+                } else if ([msg containsString:@"cihazda aktivdir"] || [msg containsString:@"limit"]) {
+                    errorString = @"Key active on another device or limit reached.";
                 }
                 
                 NSString *jsString = [NSString stringWithFormat:@"showError('%@');", errorString];
