@@ -102,15 +102,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: admin.php?page=bulk"); exit;
     }
 
-    // KEY DÜZENLEME (EDIT) İŞLEMİ
     if (isset($_POST['edit_key_name'])) {
         $old_key = $_POST['old_key'];
         $new_key = trim($_POST['new_key']);
         
         if (!empty($new_key) && $old_key !== $new_key && isset($keys_data[$old_key])) {
-            // Yeni isim zaten var mı kontrol et
             if (!isset($keys_data[$new_key])) {
-                // Keyin tüm verilerini kopyala, yeni isimle kaydet ve eskisini sil
                 $keys_data[$new_key] = $keys_data[$old_key];
                 unset($keys_data[$old_key]);
                 
@@ -252,7 +249,9 @@ function key_status_badge($v) {
 
         /* MAIN CONTENT */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; position: relative; }
-        #dynamic-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 0; opacity: 0.15; pointer-events: none; }
+        
+        /* DINAMIK ARKA PLAN (Opaklık %95) */
+        #dynamic-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 0; opacity: 0.95; pointer-events: none; }
         
         .topbar { height: 72px; background: #fff; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; position: relative; z-index: 1;}
         .breadcrumb { font-size: 14px; color: var(--text-muted); font-weight: 600; }
@@ -347,6 +346,15 @@ function key_status_badge($v) {
         .profile-pic-large img { width: 100%; height: 100%; object-fit: cover; }
         .profile-pic-large:hover::after { content: 'Upload'; position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.6); color: #fff; font-size: 12px; text-align: center; padding: 4px 0; }
 
+        /* MAIN PAGE (TELEGRAM) */
+        .main-page-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 30px; }
+        .social-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 30px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-decoration: none; color: var(--text); transition: 0.3s; display: block; }
+        .social-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.1); border-color: #0088cc; }
+        .social-icon { width: 60px; height: 60px; margin: 0 auto 15px auto; display: flex; justify-content: center; align-items: center; }
+        .social-icon svg { width: 100%; height: 100%; }
+        .social-title { font-size: 20px; font-weight: 700; margin-bottom: 5px; }
+        .social-link-text { font-size: 14px; color: var(--text-muted); font-weight: 600; }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -362,8 +370,14 @@ function key_status_badge($v) {
         </div>
         
         <div class="nav-section">
-            <div class="nav-title">Dashboard</div>
-            <a href="#" class="nav-item active" onclick="switchTab('keysTab', this)">
+            <!-- YENİ MAIN PAGE SEKMESİ EN ÜSTTE -->
+            <a href="#" class="nav-item active" onclick="switchTab('mainPageTab', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                Main Page
+            </a>
+
+            <div class="nav-title" style="margin-top:20px;">Dashboard</div>
+            <a href="#" class="nav-item" onclick="switchTab('keysTab', this)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                 All Keys
             </a>
@@ -390,7 +404,6 @@ function key_status_badge($v) {
         <div class="sidebar-bottom">
             <a href="admin.php?action=logout" class="btn btn-outline" style="width:100%; justify-content:center;">Logout</a>
             
-            <!-- PROFIL TIKLAMA -->
             <div class="user-profile" onclick="openProfileModal()">
                 <div class="user-avatar" id="profileAvatar">
                     <span id="profileText">O</span>
@@ -407,11 +420,34 @@ function key_status_badge($v) {
     <main class="main-content">
         <div id="dynamic-bg"></div>
         <header class="topbar">
-            <div class="breadcrumb">Settings / <span>API Key & SDKs</span></div>
+            <div class="breadcrumb">Dashboard / <span id="currentPageTitle">Main Page</span></div>
         </header>
 
-        <!-- SEKME 1: TÜM KEYLER -->
-        <div id="keysTab" class="content-area active">
+        <!-- YENİ SEKME: MAIN PAGE (TELEGRAM) -->
+        <div id="mainPageTab" class="content-area active">
+            <div class="main-page-container">
+                <!-- Telegram Kanalı -->
+                <a href="https://t.me/dylibsafe" target="_blank" class="social-card">
+                    <div class="social-icon" style="color: #0088cc;">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.686c.223-.198-.054-.31-.346-.112l-6.4 4.02-2.76-.862c-.6-.188-.615-.6.125-.89l10.78-4.155c.5-.185.936.112.78.89z"/></svg>
+                    </div>
+                    <div class="social-title">TELEGRAM</div>
+                    <div class="social-link-text">https://t.me/dylibsafe</div>
+                </a>
+
+                <!-- Telegram Kanalı 2 -->
+                <a href="https://t.me/qtyg1" target="_blank" class="social-card">
+                    <div class="social-icon" style="color: #0088cc;">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.686c.223-.198-.054-.31-.346-.112l-6.4 4.02-2.76-.862c-.6-.188-.615-.6.125-.89l10.78-4.155c.5-.185.936.112.78.89z"/></svg>
+                    </div>
+                    <div class="social-title">CHANNEL</div>
+                    <div class="social-link-text">https://t.me/qtyg1</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- SEKME: TÜM KEYLER -->
+        <div id="keysTab" class="content-area">
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">Create New API Key</div>
@@ -483,11 +519,9 @@ function key_status_badge($v) {
                                     <td>
                                         <div style="display:flex; align-items:center; gap:5px;">
                                             <div class="key-text"><?= htmlspecialchars($k) ?></div>
-                                            <!-- KOPYALA BUTONU -->
                                             <button type="button" class="icon-btn" onclick="copyToClipboard('<?= htmlspecialchars($k) ?>')" title="Copy Key">
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                                             </button>
-                                            <!-- DÜZENLE BUTONU (KALEM) -->
                                             <button type="button" class="icon-btn" onclick="openEditModal('<?= htmlspecialchars($k) ?>')" title="Edit Key">
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                                             </button>
@@ -496,7 +530,6 @@ function key_status_badge($v) {
                                     </td>
                                     <td><?= key_status_badge($v) ?></td>
                                     <td>
-                                        <!-- CANLI SAYAC -->
                                         <span class="countdown" data-expire="<?= $v['expire'] ?>" style="font-weight:700; color:<?= ($v['expire'] > 0 && $v['expire'] < time()) ? '#ef4444' : '#f59e0b' ?>;">
                                             <?= $v['expire'] == 0 ? 'Lifetime' : 'Loading...' ?>
                                         </span>
@@ -781,6 +814,15 @@ function key_status_badge($v) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             element.classList.add('active');
+            
+            // Baslik degistir
+            let title = "Main Page";
+            if(tabId === 'keysTab') title = "All Keys";
+            if(tabId === 'bannedTab') title = "Banned Keys";
+            if(tabId === 'infoTab') title = "Device Info";
+            if(tabId === 'bulkTab') title = "Bulk Key";
+            if(tabId === 'settingsTab') title = "Settings";
+            document.getElementById('currentPageTitle').innerText = title;
         }
 
         function filterKeys() {
@@ -879,7 +921,6 @@ function key_status_badge($v) {
             });
         }
         
-        // Her saniye sayacı güncelle
         setInterval(updateCountdowns, 1000);
         document.addEventListener("DOMContentLoaded", updateCountdowns);
 
@@ -902,7 +943,6 @@ function key_status_badge($v) {
             alert("Profile saved!");
         }
 
-        // Avatar Yükleme ve Kırpma
         function uploadAvatar(input) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
@@ -928,21 +968,19 @@ function key_status_badge($v) {
         }
 
         function applyAvatar(imgData) {
-            // Alt profil
             document.getElementById('profileImg').src = imgData;
             document.getElementById('profileImg').style.display = 'block';
             document.getElementById('profileText').style.display = 'none';
-            // Modal içi
+            
             document.getElementById('modalProfileImg').src = imgData;
             document.getElementById('modalProfileImg').style.display = 'block';
             document.getElementById('modalProfileText').style.display = 'none';
-            // Sol üst logo
+            
             document.getElementById('topLogoImg').src = imgData;
             document.getElementById('topLogoImg').style.display = 'block';
             document.getElementById('topLogoText').style.display = 'none';
         }
 
-        // Arka Plan Yükleme (Kırpma yok, direkt kaplama)
         function uploadBackground(input) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
@@ -960,7 +998,6 @@ function key_status_badge($v) {
             document.getElementById('dynamic-bg').style.backgroundImage = "url('" + bgData + "')";
         }
 
-        // Sayfa yüklendiğinde hafızadaki ayarları uygula
         window.onload = function() {
             var savedAvatar = localStorage.getItem('ownerAvatar');
             if (savedAvatar) applyAvatar(savedAvatar);
