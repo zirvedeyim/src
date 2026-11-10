@@ -8,8 +8,6 @@ on:
 jobs:
   build:
     runs-on: macos-latest
-    permissions:
-      contents: write # Repoya dosya yazma izni
 
     steps:
       - name: Kodu Repodan Çek
@@ -34,18 +32,15 @@ jobs:
       - name: Projeyi Derle
         run: |
           make clean
-          make
+          make package FINALPACKAGE=1
 
-      - name: Dylib'i Ana Dizine Taşı ve Repoya Gönder
-        run: |
-          # Oluşan dylib dosyasını bul ve ana dizine kopyala
-          find .theos/obj -name "*.dylib" -exec cp {} ./ \;
-          
-          # Git ayarlarını yap
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          
-          # Yeni oluşan dylib dosyasını repoya ekle
-          git add *.dylib
-          git commit -m "Otomatik derlenen dylib dosyasi eklendi" || echo "Degisiklik yok"
-          git push
+      - name: Derlenen Dylib ve Deb Dosyalarini Yukle (Artifacts)
+        uses: actions/upload-artifact@v4
+        with:
+          name: DARK-IO-Output
+          # Hem .deb hem de .dylib dosyasini ZIP olarak paketler ve Actions sekmesine yukler
+          path: |
+            packages/*.deb
+            .theos/obj/**/*.dylib
+            *.dylib
+          if-no-files-found: warn
