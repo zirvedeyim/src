@@ -1,4 +1,4 @@
-name: Build Dylib
+name: Build Tweak
 
 on:
   push:
@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: macos-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Kodu Repodan Çek
@@ -34,13 +36,11 @@ jobs:
           make clean
           make package FINALPACKAGE=1
 
-      - name: Derlenen Dylib ve Deb Dosyalarini Yukle (Artifacts)
+      - name: Derlenen Dosyalari ZIP Olarak Yukle
         uses: actions/upload-artifact@v4
         with:
-          name: DARK-IO-Output
-          # Hem .deb hem de .dylib dosyasini ZIP olarak paketler ve Actions sekmesine yukler
+          name: M7MD-Dylib-ZIP
           path: |
             packages/*.deb
             .theos/obj/**/*.dylib
-            *.dylib
           if-no-files-found: warn
