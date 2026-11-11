@@ -8,12 +8,13 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = M7MD
 
-# Sadece test için gerekli frameworkler
+# KeySystem ve Tweak için gerekli temel framework'ler
 M7MD_FRAMEWORKS = UIKit Foundation WebKit
 
+# Derleyici ayarları
 M7MD_CFLAGS = -w -fobjc-arc -Wno-deprecated-declarations
 
-# SADECE KeySystem ve Tweak.mm derlenecek
+# SADECE BU İKİ DOSYA DERLENECEK (Test aşaması)
 M7MD_FILES = Tweak.mm KeySystem.mm
 
 include $(THEOS_MAKE_PATH)/tweak.mk
