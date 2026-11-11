@@ -3,8 +3,12 @@
 #import "KeySystem.mm"
 
 %ctor {
-    // Sadece Key ekranını aç, Engine.mm'yi çağırma!
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    // Oyun açıldıktan 5 saniye sonra Key ekranını aç
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        
+        NSLog(@"[M7MD] TEST: Sadece Key Sistemi Başlatılıyor...");
+        
+        // Key sistemini aç
         showKeyMenu(); 
     });
 }
