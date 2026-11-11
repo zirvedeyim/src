@@ -98,8 +98,26 @@ BOOL validateKey(NSString *enteredKey) {
 __attribute__((constructor)) static void initialize() {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         
-        // Oyunun penceresini bul
-        UIWindow *window = [UIApplication sharedApplication].keyWindow;
+        // iOS 13+ uyumlu pencere bulma yöntemi (keyWindow hatasını çözer)
+        UIWindow *window = nil;
+        if (@available(iOS 13.0, *)) {
+            for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) {
+                if ([scene isKindOfClass:[UIWindowScene class]]) {
+                    UIWindowScene *windowScene = (UIWindowScene *)scene;
+                    for (UIWindow *w in windowScene.windows) {
+                        if (w.isKeyWindow) {
+                            window = w;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (!window) {
+            window = [UIApplication sharedApplication].windows.firstObject;
+        }
+        
         if (window) {
             NSLog(@"[M7MD] Pencere bulundu, Key ekrani aciliyor...");
             KeyViewController *webVC = [[KeyViewController alloc] init];
